@@ -1,0 +1,13 @@
+# Unity generated files
+Library/
+Temp/
+obj/
+Build/
+Builds/
+Logs/
+
+# IDE and OS files
+*.csproj
+*.sln
+.DS_Store
+.vscode/
