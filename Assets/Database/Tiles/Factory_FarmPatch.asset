@@ -15,3 +15,15 @@ MonoBehaviour:
   plantAction: {fileID: 11400000, guid: 8736bd73ce01e6b48a429474ed4c9d5b, type: 2}
   harvestAction: {fileID: 11400000, guid: f85c5125e35d2604fb50f10dff358bbc, type: 2}
   speedUpAction: {fileID: 11400000, guid: aca1c61d6c37e1240b98924ca1543e8b, type: 2}
+  emptyPatchSprite: {fileID: -508472668195915462, guid: 17b0b1152d2d030438d2fd53fb9cfd0c, type: 3}
+  plantedWheatSprite: {fileID: -3428729892405730144, guid: a237f1b05e82afd408ee819120e02b2e, type: 3}
+  earlyWheatSprite: {fileID: 9085615029755867787, guid: c1aa9c996937254439b18302e2ab4425, type: 3}
+  middleWheatSprite: {fileID: 4730953849863768735, guid: c773ec51f8cc3684a9df4a60022233a2, type: 3}
+  matureWheatSprite: {fileID: -2626478535174582117, guid: da457849a745fa34fac2a0ba05049151, type: 3}
+  harvestedPatchSprite: {fileID: 726858041844233521, guid: e2c2f5de5d6fc1f44b86085e6cd977f1, type: 3}
+  harvestedDisplaySeconds: 0.35
+  harvestRewardSprite: {fileID: 7149491612220551677, guid: 565c4d0dcf763e449a451ac689fd8c76, type: 3}
+  harvestRewardAmount: 2
+  rewardLifetimeSeconds: 0.8
+  rewardHopHeight: 0.35
+  rewardOffset: {x: 0, y: 0.35, z: 0}

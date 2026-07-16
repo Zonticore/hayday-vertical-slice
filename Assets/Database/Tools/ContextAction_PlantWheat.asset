@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0687e1a39c4668647b298e54918dcef3, type: 3}
   m_Name: ContextAction_PlantWheat
   m_EditorClassIdentifier: Assembly-CSharp::ContextActionDefinitionSO
-  actionId: 
-  displayName: 
+  actionId: plant_wheat
+  displayName: Wheat
   icon: {fileID: 4829816501209104512, guid: 2709e1a0c5edabb40b72a850b2379bd0, type: 3}
   order: 0
   closeMenuOnExecute: 1
-  tool: {fileID: 0}
+  tool: {fileID: 11400000, guid: c4c1f0837c8b4d7694cabcb0e1dce223, type: 2}

@@ -11,6 +11,7 @@ public sealed class ContextAction
     public int Order { get; }
     public bool IsEnabled { get; }
     public bool CloseMenuOnExecute { get; }
+    public TileToolSO Tool { get; }
 
     public ContextAction(
         string actionId,
@@ -19,6 +20,7 @@ public sealed class ContextAction
         int order,
         bool isEnabled,
         bool closeMenuOnExecute,
+        TileToolSO tool,
         Action execute)
     {
         ActionId = actionId;
@@ -27,6 +29,7 @@ public sealed class ContextAction
         Order = order;
         IsEnabled = isEnabled;
         CloseMenuOnExecute = closeMenuOnExecute;
+        Tool = tool;
         _execute = execute;
     }
 

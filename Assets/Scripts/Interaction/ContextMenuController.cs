@@ -40,9 +40,14 @@ public sealed class ContextMenuController : MonoBehaviourSingleton<ContextMenuCo
 
     public void Execute(int actionIndex)
     {
+        TryExecute(actionIndex, true);
+    }
+
+    public bool TryExecute(int actionIndex, bool closeMenuOnSuccess)
+    {
         if (!IsOpen || actionIndex < 0 || actionIndex >= _currentActions.Count)
         {
-            return;
+            return false;
         }
 
         ContextAction action = _currentActions[actionIndex];
@@ -53,10 +58,12 @@ public sealed class ContextMenuController : MonoBehaviourSingleton<ContextMenuCo
             Log.info($"[ContextMenuController] Action '{action.ActionId}' executed: {executed}.");
         }
 
-        if (executed && action.CloseMenuOnExecute)
+        if (executed && closeMenuOnSuccess && action.CloseMenuOnExecute)
         {
             Close();
         }
+
+        return executed;
     }
 
     public void Close()

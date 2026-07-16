@@ -12,6 +12,7 @@ public sealed class ContextMenuDisplay : MonoBehaviour
     [SerializeField] private RectTransform optionContainer;
     [SerializeField] private ContextMenuOptionDisplay optionPrefab;
     [SerializeField] private Canvas canvas;
+    [SerializeField] private TileToolInputRouter toolInputRouter;
 
     [Header("Positioning")]
     [Tooltip("Pixel offset from the tile's selected screen position.")]
@@ -22,12 +23,19 @@ public sealed class ContextMenuDisplay : MonoBehaviour
         new List<ContextMenuOptionDisplay>();
 
     private bool _isSubscribed;
+    private int _draggingActionIndex = -1;
+    private bool _closeMenuAfterDrag;
 
     private void Awake()
     {
         if (canvas == null)
         {
             canvas = GetComponentInParent<Canvas>();
+        }
+
+        if (toolInputRouter == null)
+        {
+            toolInputRouter = FindAnyObjectByType<TileToolInputRouter>();
         }
 
         if (displayRoot != null)
@@ -48,6 +56,7 @@ public sealed class ContextMenuDisplay : MonoBehaviour
 
     private void OnDisable()
     {
+        CancelActiveDrag();
         Unsubscribe();
     }
 
@@ -58,20 +67,32 @@ public sealed class ContextMenuDisplay : MonoBehaviour
             return;
         }
 
-        ContextMenuController.instance.Opened += HandleOpened;
-        ContextMenuController.instance.Closed += HandleClosed;
+        ContextMenuController controller = ContextMenuController.instance;
+        if (controller == null)
+        {
+            if (verbose) Log.warning("[ContextMenuDisplay] No ContextMenuController is available.");
+            return;
+        }
+
+        controller.Opened += HandleOpened;
+        controller.Closed += HandleClosed;
         _isSubscribed = true;
     }
 
     private void Unsubscribe()
     {
-        if (!_isSubscribed || ContextMenuController.instance == null)
+        if (!_isSubscribed)
         {
             return;
         }
 
-        ContextMenuController.instance.Opened -= HandleOpened;
-        ContextMenuController.instance.Closed -= HandleClosed;
+        ContextMenuController controller = ContextMenuController.instance;
+        if (controller != null)
+        {
+            controller.Opened -= HandleOpened;
+            controller.Closed -= HandleClosed;
+        }
+
         _isSubscribed = false;
     }
 
@@ -95,7 +116,12 @@ public sealed class ContextMenuDisplay : MonoBehaviour
                 optionContainer,
                 false);
 
-            option.Bind(actions[i], () => ContextMenuController.instance.Execute(actionIndex));
+            option.Bind(
+                actions[i],
+                () => ContextMenuController.instance.Execute(actionIndex),
+                screenPosition => BeginOptionDrag(actionIndex, screenPosition),
+                screenPosition => ContinueOptionDrag(actionIndex, screenPosition),
+                screenPosition => EndOptionDrag(actionIndex, screenPosition));
             _spawnedOptions.Add(option);
         }
 
@@ -109,6 +135,7 @@ public sealed class ContextMenuDisplay : MonoBehaviour
 
     private void HandleClosed()
     {
+        CancelActiveDrag();
         ClearOptions();
 
         if (displayRoot != null)
@@ -117,6 +144,95 @@ public sealed class ContextMenuDisplay : MonoBehaviour
         }
 
         if (verbose) Log.info("[ContextMenuDisplay] Context menu closed.");
+    }
+
+    private bool BeginOptionDrag(int actionIndex, Vector2 screenPosition)
+    {
+        ContextMenuController menuController = ContextMenuController.instance;
+        if (menuController == null || toolInputRouter == null)
+        {
+            if (verbose) Log.warning("[ContextMenuDisplay] Dragging requires menu and tool input controllers.");
+            return false;
+        }
+
+        if (actionIndex < 0 || actionIndex >= menuController.CurrentActions.Count)
+        {
+            return false;
+        }
+
+        ContextAction action = menuController.CurrentActions[actionIndex];
+        if (!action.IsEnabled || action.Tool == null)
+        {
+            return false;
+        }
+
+        CancelActiveDrag();
+
+        if (!menuController.TryExecute(actionIndex, false))
+        {
+            return false;
+        }
+
+        ToolController toolController = ToolController.instance;
+        if (toolController == null || !toolController.HasActiveTool)
+        {
+            return false;
+        }
+
+        _draggingActionIndex = actionIndex;
+        _closeMenuAfterDrag = action.CloseMenuOnExecute;
+        toolInputRouter.BeginStroke(screenPosition, false);
+        return true;
+    }
+
+    private void ContinueOptionDrag(int actionIndex, Vector2 screenPosition)
+    {
+        if (actionIndex == _draggingActionIndex && toolInputRouter != null)
+        {
+            toolInputRouter.ContinueStroke(screenPosition);
+        }
+    }
+
+    private void EndOptionDrag(int actionIndex, Vector2 screenPosition)
+    {
+        if (actionIndex != _draggingActionIndex)
+        {
+            return;
+        }
+
+        bool shouldCloseMenu = _closeMenuAfterDrag;
+
+        if (toolInputRouter != null)
+        {
+            toolInputRouter.ContinueStroke(screenPosition);
+            toolInputRouter.EndStroke();
+        }
+
+        ToolController.instance.Deactivate();
+        ResetDragState();
+
+        if (shouldCloseMenu)
+        {
+            ContextMenuController.instance.Close();
+        }
+    }
+
+    private void CancelActiveDrag()
+    {
+        if (_draggingActionIndex < 0)
+        {
+            return;
+        }
+
+        toolInputRouter.EndStroke();
+        ToolController.instance.Deactivate();
+        ResetDragState();
+    }
+
+    private void ResetDragState()
+    {
+        _draggingActionIndex = -1;
+        _closeMenuAfterDrag = false;
     }
 
     private bool HasRequiredReferences()

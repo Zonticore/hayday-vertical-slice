@@ -2,6 +2,8 @@ using UnityEngine;
 
 public sealed class TileToolInputRouter : MonoBehaviour
 {
+    private const bool verbose = false;
+
     [SerializeField] private Camera worldCamera;
     [SerializeField] private LayerMask toolTargetLayers = ~0;
 
@@ -13,10 +15,20 @@ public sealed class TileToolInputRouter : MonoBehaviour
         }
     }
 
-    public void BeginStroke(Vector2 screenPosition)
+    public void BeginStroke(Vector2 screenPosition, bool applyAtStart = true)
     {
-        ToolController.instance.BeginStroke();
-        ApplyAt(screenPosition);
+        ToolController controller = ToolController.instance;
+        if (controller == null)
+        {
+            if (verbose) Log.warning("[TileToolInputRouter] No ToolController is available.");
+            return;
+        }
+
+        controller.BeginStroke();
+        if (applyAtStart)
+        {
+            ApplyAt(screenPosition);
+        }
     }
 
     public void ContinueStroke(Vector2 screenPosition)

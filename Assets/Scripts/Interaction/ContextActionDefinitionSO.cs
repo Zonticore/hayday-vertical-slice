@@ -27,6 +27,7 @@ public sealed class ContextActionDefinitionSO : ScriptableObject
             order,
             isEnabled,
             closeMenuOnExecute,
+            tool,
             execute);
     }
 
