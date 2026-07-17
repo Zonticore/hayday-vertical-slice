@@ -3,8 +3,11 @@ Library/
 Temp/
 obj/
 Build/
-Builds/
+Builds/*
+!Builds/*.zip
 Logs/
+.utmp/
+HaydaySliceAndroid.mp4
 
 # IDE and OS files
 *.csproj
