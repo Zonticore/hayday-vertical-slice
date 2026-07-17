@@ -10,11 +10,11 @@ A mobile-first recreation of the core *Hay Day* farming loop, built in Unity for
 | --- | --- |
 | Windows build | [Download ZIP](./Builds/HaydayVerticalSliceWindowsBuild.zip) |
 | Android build | [Download ZIP](./Builds/HaydayVerticalSliceAndroidBuild.zip) |
-| Visual showcase | [Watch video](./VerticalSliceShowcase.mp4) |
-| Technical showcase | [Watch video](./TechnicalShowcase.mp4) |
+| Visual showcase | [Watch video](https://drive.google.com/file/d/1nBnzh0W3yKT3IhUaZd32rH2Gz33YGKo5/view?usp=sharing) |
+| Technical showcase | [Watch video](https://drive.google.com/file/d/1OcYPaWEeg5JR-cjK_ifpdV2qra0rLQCJ/view?usp=sharing) |
 | AI session transcript | [View or download transcript](./Codex_AI_Transcript.txt) |
 
-> **Mobile side note:** [This short phone recording](./HaydaySliceAndroid_web.mp4) shows the Android build running and being played on a physical device.
+> **Mobile side note:** [This short phone recording](https://drive.google.com/file/d/1SgJtUh-AbegRFLofV16Ya-0u7Jr4pgbM/view?usp=sharing) shows the Android build running and being played on a physical device.
 
 ### Build instructions
 
