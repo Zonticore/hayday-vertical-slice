@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1111111111111111111111111111105, type: 3}
+  m_Name: RequestBoardConfig_Default
+  m_EditorClassIdentifier: Assembly-CSharp::RequestBoardConfigSO
+  orders:
+  - {fileID: 11400000, guid: c1111111111111111111111111111103, type: 2}
+  - {fileID: 11400000, guid: c1111111111111111111111111111104, type: 2}
+  goldSprite: {fileID: 4252207737470138954, guid: ef8b2195a9a4e7d4899cf2c533c1d1b9, type: 3}
+  experienceSprite: {fileID: 428310065403587307, guid: c02622c39eed0c640b91582564b1249c, type: 3}
+  orderCooldownSeconds: 5
+  avoidImmediateRepeat: 0

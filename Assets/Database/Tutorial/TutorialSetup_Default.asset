@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a1111111111111111111111111111102, type: 3}
+  m_Name: TutorialSetup_Default
+  m_EditorClassIdentifier: Assembly-CSharp::TutorialSetupConfigSO
+  buildOnStart: 1
+  patchAreas:
+  - patchTile: {fileID: 11400000, guid: 18836cbcc4f2971439131c355c4a3304, type: 2}
+    startingCrop: {fileID: 11400000, guid: b1111111111111111111111111111101, type: 2}
+    firstPosition: {x: 0, y: 0}
+    size: {x: 3, y: 2}
+    startMature: 1
+    growthDurationSeconds: 60
+  tilePlacements:
+  - tile: {fileID: 11400000, guid: fcf689af3abf4ce41b485c3691364a38, type: 2}
+    position: {x: 8, y: 2}
+  - tile: {fileID: 11400000, guid: 9f1d648176e74432aa5927caf08e4d82, type: 2}
+    position: {x: -5, y: 4}
+  - tile: {fileID: 11400000, guid: cb8dea293d8d39343afb24fbfd67637e, type: 2}
+    position: {x: 5, y: -5}
+  - tile: {fileID: 11400000, guid: 10282a9df916a6140b912c1dc12c3577, type: 2}
+    position: {x: 10, y: -9}

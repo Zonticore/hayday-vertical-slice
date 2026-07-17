@@ -12,15 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9230715b7147bcc4eb1b0ad174e403dd, type: 3}
   m_Name: Factory_ChickenCoop
   m_EditorClassIdentifier: Assembly-CSharp::ChickenCoopTileFactorySO
-  chickenItemId: chicken
-  feedItemId: chicken_feed
-  eggItemId: egg
+  chickenItem: {fileID: 11400000, guid: b1111111111111111111111111111104, type: 2}
+  feedItem: {fileID: 11400000, guid: b1111111111111111111111111111103, type: 2}
+  eggItem: {fileID: 11400000, guid: b1111111111111111111111111111102, type: 2}
   maxChickens: 6
   productionSeconds: 15
-  fedCoopSprite: {fileID: 8703400546429450311, guid: a29827c7f1247b8479d974a95c7f77f1, type: 3}
-  chickenSprite: {fileID: -7941936156974729709, guid: c17df57ab588a2e4eb5d082fcc4cc34a, type: 3}
-  eggSprite: {fileID: -5684301516696917941, guid: 415c564c9dec8f14a9394d7acba2aa73, type: 3}
+  producingChickenSprite: {fileID: 1085922282822218552, guid: 4bc3372b5e8d8994190b0f5aef906693, type: 3}
+  emptyTroughSprite: {fileID: 4970732119988413087, guid: ec81ffab1656d954db226fb3d09d56bd, type: 3}
+  filledTroughSprite: {fileID: -4712904231587241056, guid: f1e7ab7a9080fc34d99a12eaf4dba392, type: 3}
+  troughOffset: {x: 2, y: -1, z: 0}
+  troughScale: {x: 0.55, y: 0.55, z: 1}
   eggCollectionOffset: {x: 0, y: 0.35, z: 0}
   chickenOffsets: []
-  feedActionIcon: {fileID: -8224697633715539884, guid: 08d0cf37128f84a4f829be7966f2c456, type: 3}
-  claimActionIcon: {fileID: -5684301516696917941, guid: 415c564c9dec8f14a9394d7acba2aa73, type: 3}
+  feedAction: {fileID: 11400000, guid: 2c4d3411f3c346acadfa8d0085c2edfb, type: 2}
+  claimAction: {fileID: 11400000, guid: 9a87f64ded7546c3a9f649ea47c664af, type: 2}

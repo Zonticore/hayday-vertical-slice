@@ -3,14 +3,17 @@ using UnityEngine;
 public sealed class ChickenCoopActionProvider : MonoBehaviour, IContextActionProvider
 {
     private ChickenCoopState _state;
-    private Sprite _feedIcon;
-    private Sprite _claimIcon;
+    private ContextActionDefinitionSO _feedAction;
+    private ContextActionDefinitionSO _claimAction;
 
-    public void Initialize(ChickenCoopState state, Sprite feedIcon, Sprite claimIcon)
+    public void Initialize(
+        ChickenCoopState state,
+        ContextActionDefinitionSO feedAction,
+        ContextActionDefinitionSO claimAction)
     {
         _state = state;
-        _feedIcon = feedIcon;
-        _claimIcon = claimIcon;
+        _feedAction = feedAction;
+        _claimAction = claimAction;
     }
 
     public void CollectActions(ContextActionCollection collection)
@@ -20,29 +23,17 @@ public sealed class ChickenCoopActionProvider : MonoBehaviour, IContextActionPro
             return;
         }
 
-        if (_state.Phase == ChickenCoopPhase.Idle && _state.ChickenCount > 0)
+        if (_state.CanAttemptFeed && _feedAction != null)
         {
-            collection.Add(new ContextAction(
-                "feed_chickens",
-                "Feed",
-                _feedIcon,
-                0,
-                _state.CanFeed,
+            collection.Add(_feedAction.CreateRuntimeActionWithResult(
                 true,
-                null,
                 () => _state.TryFeed()));
         }
 
-        if (_state.Phase == ChickenCoopPhase.Ready)
+        if (_state.CanClaim && _claimAction != null)
         {
-            collection.Add(new ContextAction(
-                "collect_eggs",
-                "Collect Eggs",
-                _claimIcon,
-                0,
-                _state.CanClaim,
+            collection.Add(_claimAction.CreateRuntimeActionWithResult(
                 true,
-                null,
                 () => _state.TryClaim()));
         }
     }

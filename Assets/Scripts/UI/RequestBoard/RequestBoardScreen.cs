@@ -16,25 +16,27 @@ public sealed class RequestBoardScreen : UIScreen
     [SerializeField] private TMP_Text timeUntilNextOrder;
     [SerializeField] private Button submitButton;
 
-    [Header("Current Order")]
-    [SerializeField] private string requestedItemId = "wheat";
-    [SerializeField] private StorageType requestedStorage = StorageType.Grain;
-    [SerializeField] private Sprite requestedItemSprite;
-    [SerializeField, Min(1)] private int requestedAmount = 3;
+    [Header("Content")]
+    [SerializeField] private RequestBoardConfigSO config;
 
-    [Header("Rewards")]
-    [SerializeField] private Sprite goldSprite;
-    [SerializeField, Min(0)] private int goldReward = 10;
-    [SerializeField] private Sprite experienceSprite;
-    [SerializeField, Min(0)] private int experienceReward = 5;
-    [SerializeField, Min(0f)] private float orderCooldownSeconds = 5f;
-
-    private readonly List<ItemDisplay> _createdRequestedItems = new List<ItemDisplay>();
-    private readonly List<ItemDisplay> _createdRewardItems = new List<ItemDisplay>();
+    private readonly List<ItemDisplay> _createdRequestedItems =
+        new List<ItemDisplay>();
+    private readonly List<ItemDisplay> _createdRewardItems =
+        new List<ItemDisplay>();
+    private readonly List<RequestOrderSO> _eligibleOrders =
+        new List<RequestOrderSO>();
+    private readonly Dictionary<ItemDefinitionSO, int> _requiredAmounts =
+        new Dictionary<ItemDefinitionSO, int>();
 
     private UserModel _user;
+    private RequestOrderSO _currentOrder;
+    private RequestOrderSO _previousOrder;
+    private int _currentGoldReward;
+    private int _currentExperienceReward;
     private float _nextOrderAt;
     private bool _subscribed;
+    private bool _hasRewardWorldPosition;
+    private Vector3 _rewardWorldPosition;
 
     private readonly struct DisplayEntry
     {
@@ -56,11 +58,14 @@ public sealed class RequestBoardScreen : UIScreen
         {
             screenId = ScreenId;
         }
+
+        EnsureCurrentOrder();
     }
 
     private void OnEnable()
     {
         Subscribe();
+        EnsureCurrentOrder();
         UpdateUi();
     }
 
@@ -79,6 +84,7 @@ public sealed class RequestBoardScreen : UIScreen
         if (Time.unscaledTime >= _nextOrderAt)
         {
             _nextOrderAt = 0f;
+            EnsureCurrentOrder();
             UpdateUi();
             return;
         }
@@ -90,34 +96,171 @@ public sealed class RequestBoardScreen : UIScreen
     {
         base.show();
         Subscribe();
+        EnsureCurrentOrder();
         UpdateUi();
+    }
+
+    public void SetRewardWorldPosition(Vector3 worldPosition)
+    {
+        _rewardWorldPosition = worldPosition;
+        _hasRewardWorldPosition = true;
     }
 
     public void doOrder()
     {
-        if (_nextOrderAt > Time.unscaledTime)
+        if (_nextOrderAt > Time.unscaledTime || _currentOrder == null)
         {
             return;
         }
 
         _user = UserModel.GetOrCreate();
-        if (!_user.TryRemoveItem(requestedStorage, requestedItemId, requestedAmount))
+        if (!HasRequiredItems(_currentOrder))
         {
             UpdateUi();
             return;
         }
 
-        _user.AddCoins(goldReward);
-        _user.AddExperience(experienceReward);
-        _nextOrderAt = orderCooldownSeconds > 0f
-            ? Time.unscaledTime + orderCooldownSeconds
-            : 0f;
+        BuildRequiredAmounts(_currentOrder);
+        var requirements =
+            new List<KeyValuePair<ItemDefinitionSO, int>>(_requiredAmounts);
+        foreach (KeyValuePair<ItemDefinitionSO, int> requirement in
+                 requirements)
+        {
+            ItemDefinitionSO item = requirement.Key;
+            _user.TryRemoveItem(
+                item.Storage,
+                item.ItemId,
+                requirement.Value);
+        }
 
-        UpdateUi();
+        GrantRewards(_currentGoldReward, _currentExperienceReward);
 
         if (verbose)
         {
-            Log.info($"[RequestBoardScreen] Completed an order for {requestedAmount} {requestedItemId}.");
+            Log.info($"[RequestBoardScreen] Completed order '{_currentOrder.OrderId}'.");
+        }
+
+        _previousOrder = _currentOrder;
+        _currentOrder = null;
+        _currentGoldReward = 0;
+        _currentExperienceReward = 0;
+        float cooldown = config != null ? config.OrderCooldownSeconds : 0f;
+        _nextOrderAt = cooldown > 0f
+            ? Time.unscaledTime + cooldown
+            : 0f;
+
+        EnsureCurrentOrder();
+        UpdateUi();
+    }
+
+    private void GrantRewards(int goldReward, int experienceReward)
+    {
+        CoinsDisplay coinsDisplay = CoinsDisplay.instance;
+        if (goldReward > 0)
+        {
+            if (coinsDisplay != null && _hasRewardWorldPosition)
+            {
+                coinsDisplay.GainCoins(goldReward, _rewardWorldPosition);
+            }
+            else
+            {
+                _user.AddCoins(goldReward);
+            }
+        }
+
+        XpDisplay xpDisplay = XpDisplay.instance;
+        if (experienceReward > 0)
+        {
+            if (xpDisplay != null && _hasRewardWorldPosition)
+            {
+                xpDisplay.GainExperience(experienceReward, _rewardWorldPosition);
+            }
+            else
+            {
+                _user.AddExperience(experienceReward);
+            }
+        }
+    }
+
+    private void EnsureCurrentOrder()
+    {
+        if (_currentOrder != null || _nextOrderAt > Time.unscaledTime ||
+            config == null)
+        {
+            return;
+        }
+
+        _eligibleOrders.Clear();
+        IReadOnlyList<RequestOrderSO> orders = config.Orders;
+        for (int i = 0; i < orders.Count; i++)
+        {
+            RequestOrderSO order = orders[i];
+            if (order != null && order.RequestedItems.Count > 0)
+            {
+                _eligibleOrders.Add(order);
+            }
+        }
+
+        if (_eligibleOrders.Count == 0)
+        {
+            if (verbose) Log.warning("[RequestBoardScreen] No valid orders are configured.");
+            return;
+        }
+
+        if (config.AvoidImmediateRepeat && _eligibleOrders.Count > 1 &&
+            _previousOrder != null)
+        {
+            _eligibleOrders.Remove(_previousOrder);
+        }
+
+        _currentOrder = _eligibleOrders[
+            Random.Range(0, _eligibleOrders.Count)];
+        _currentGoldReward = _currentOrder.RollGoldReward();
+        _currentExperienceReward = _currentOrder.RollExperienceReward();
+    }
+
+    private bool HasRequiredItems(RequestOrderSO order)
+    {
+        if (_user == null || order == null)
+        {
+            return false;
+        }
+
+        BuildRequiredAmounts(order);
+        foreach (KeyValuePair<ItemDefinitionSO, int> requirement in
+                 _requiredAmounts)
+        {
+            ItemDefinitionSO item = requirement.Key;
+            if (_user.GetStorage(item.Storage).GetQuantity(item.ItemId) <
+                requirement.Value)
+            {
+                return false;
+            }
+        }
+
+        return _requiredAmounts.Count > 0;
+    }
+
+    private void BuildRequiredAmounts(RequestOrderSO order)
+    {
+        _requiredAmounts.Clear();
+        if (order == null)
+        {
+            return;
+        }
+
+        IReadOnlyList<RequestOrderItem> items = order.RequestedItems;
+        for (int i = 0; i < items.Count; i++)
+        {
+            RequestOrderItem requested = items[i];
+            ItemDefinitionSO item = requested?.Item;
+            if (item == null)
+            {
+                continue;
+            }
+
+            _requiredAmounts.TryGetValue(item, out int currentAmount);
+            _requiredAmounts[item] = currentAmount + requested.Amount;
         }
     }
 
@@ -125,31 +268,52 @@ public sealed class RequestBoardScreen : UIScreen
     {
         _user = UserModel.GetOrCreate();
 
-        var requested = new List<DisplayEntry>
+        var requestedEntries = new List<DisplayEntry>();
+        if (_currentOrder != null)
         {
-            new DisplayEntry(requestedItemId, requestedItemSprite, requestedAmount)
-        };
-
-        var rewards = new List<DisplayEntry>();
-        if (goldReward > 0)
-        {
-            rewards.Add(new DisplayEntry("gold", goldSprite, goldReward));
+            IReadOnlyList<RequestOrderItem> items = _currentOrder.RequestedItems;
+            for (int i = 0; i < items.Count; i++)
+            {
+                RequestOrderItem requested = items[i];
+                ItemDefinitionSO item = requested?.Item;
+                if (item != null)
+                {
+                    requestedEntries.Add(new DisplayEntry(
+                        item.ItemId,
+                        item.Sprite,
+                        requested.Amount));
+                }
+            }
         }
 
-        if (experienceReward > 0)
+        var rewardEntries = new List<DisplayEntry>();
+        if (_currentOrder != null && config != null)
         {
-            rewards.Add(new DisplayEntry("xp", experienceSprite, experienceReward));
+            if (_currentGoldReward > 0)
+            {
+                rewardEntries.Add(new DisplayEntry(
+                    "gold",
+                    config.GoldSprite,
+                    _currentGoldReward));
+            }
+
+            if (_currentExperienceReward > 0)
+            {
+                rewardEntries.Add(new DisplayEntry(
+                    "xp",
+                    config.ExperienceSprite,
+                    _currentExperienceReward));
+            }
         }
 
-        Populate(requestedItemsContainer, requested, _createdRequestedItems);
-        Populate(rewardsContainer, rewards, _createdRewardItems);
+        Populate(requestedItemsContainer, requestedEntries, _createdRequestedItems);
+        Populate(rewardsContainer, rewardEntries, _createdRewardItems);
 
-        bool cooldownComplete = _nextOrderAt <= Time.unscaledTime;
-        bool hasItems = _user.GetStorage(requestedStorage).GetQuantity(requestedItemId) >=
-                        requestedAmount;
         if (submitButton != null)
         {
-            submitButton.interactable = cooldownComplete && hasItems;
+            submitButton.interactable =
+                _nextOrderAt <= Time.unscaledTime &&
+                HasRequiredItems(_currentOrder);
         }
 
         UpdateTimerText();
@@ -260,18 +424,21 @@ public sealed class RequestBoardScreen : UIScreen
         int previous,
         int current)
     {
-        if (storage == requestedStorage && itemId == requestedItemId)
+        if (_currentOrder == null)
         {
-            UpdateUi();
+            return;
         }
-    }
 
-    private void OnValidate()
-    {
-        requestedItemId = requestedItemId == null ? string.Empty : requestedItemId.Trim();
-        requestedAmount = Mathf.Max(1, requestedAmount);
-        goldReward = Mathf.Max(0, goldReward);
-        experienceReward = Mathf.Max(0, experienceReward);
-        orderCooldownSeconds = Mathf.Max(0f, orderCooldownSeconds);
+        IReadOnlyList<RequestOrderItem> items = _currentOrder.RequestedItems;
+        for (int i = 0; i < items.Count; i++)
+        {
+            ItemDefinitionSO requested = items[i]?.Item;
+            if (requested != null && requested.Storage == storage &&
+                requested.ItemId == itemId)
+            {
+                UpdateUi();
+                return;
+            }
+        }
     }
 }

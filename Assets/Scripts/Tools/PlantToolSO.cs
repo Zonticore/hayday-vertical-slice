@@ -5,10 +5,10 @@ using UnityEngine;
 public sealed class PlantToolSO : TileToolSO
 {
     [Header("Crop")]
-    [SerializeField] private string cropId;
+    [SerializeField] private ItemDefinitionSO crop;
     [SerializeField, Min(0f)] private float growthDurationSeconds = 60f;
 
-    public string CropId => cropId;
+    public ItemDefinitionSO Crop => crop;
     public TimeSpan GrowthDuration => TimeSpan.FromSeconds(growthDurationSeconds);
 
     public override bool CanApply(ToolUseContext context)
@@ -26,12 +26,12 @@ public sealed class PlantToolSO : TileToolSO
                ComponentInterfaceUtility.TryGetInterface(
                    context.Target,
                    out IPlantable plantable) &&
-               plantable.TryPlant(cropId, GrowthDuration);
+               plantable.TryPlant(crop.ItemId, GrowthDuration);
     }
 
     private bool HasValidConfiguration()
     {
-        return !string.IsNullOrWhiteSpace(cropId) &&
+        return crop != null && !string.IsNullOrWhiteSpace(crop.ItemId) &&
                growthDurationSeconds >= 0f &&
                !float.IsNaN(growthDurationSeconds) &&
                !float.IsInfinity(growthDurationSeconds);
@@ -39,7 +39,6 @@ public sealed class PlantToolSO : TileToolSO
 
     private void OnValidate()
     {
-        cropId = cropId == null ? string.Empty : cropId.Trim();
         growthDurationSeconds = Mathf.Max(0f, growthDurationSeconds);
     }
 }

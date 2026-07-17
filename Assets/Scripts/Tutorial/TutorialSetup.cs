@@ -1,32 +1,11 @@
 using System;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 public sealed class TutorialSetup : MonoBehaviour
 {
     private const bool verbose = false;
 
-    [Header("Tutorial Farm")]
-    private string farmPatchTileId = "crop_empty";
-    private string startingCropId = "wheat";
-    private Vector2Int firstPatchPosition = Vector2Int.zero;
-    private Vector2Int patchGridSize = new Vector2Int(3, 2);
-
-    [Header("Feature Tiles")]
-    private bool buildFeatureTiles = true;
-    private string chickenCoopTileId = "coop";
-    private Vector2Int chickenCoopPosition = new Vector2Int(8, 2);
-    private string requestBoardTileId = "request_board";
-    private Vector2Int requestBoardPosition = new Vector2Int(-5, 4);
-    
-    private string siloId = "silo";
-    private Vector2Int siloPosition = new Vector2Int(5, -5);
-    private string barnId = "barn";
-    private Vector2Int barnPosition = new Vector2Int(10, -9);
-
-    [Header("Setup")]
-    private bool buildOnStart = true;
-    private bool allowKeyboardTrigger = true;
+    [SerializeField] private TutorialSetupConfigSO config;
 
     private bool _isSetup;
 
@@ -34,7 +13,7 @@ public sealed class TutorialSetup : MonoBehaviour
     {
         UserModel.GetOrCreate();
 
-        if (buildOnStart)
+        if (config != null && config.BuildOnStart)
         {
             SetupTutorialFarm();
         }
@@ -48,6 +27,12 @@ public sealed class TutorialSetup : MonoBehaviour
             return;
         }
 
+        if (config == null)
+        {
+            if (verbose) Log.error("[TutorialSetup] Setup config is not assigned.");
+            return;
+        }
+
         TileBuildService buildService = TileBuildService.instance;
         GridService grid = GridService.instance;
         if (buildService == null || grid == null)
@@ -56,78 +41,98 @@ public sealed class TutorialSetup : MonoBehaviour
             return;
         }
 
-        int columns = Mathf.Max(1, patchGridSize.x);
-        int rows = Mathf.Max(1, patchGridSize.y);
+        bool setupSucceeded = true;
         int readyPatchCount = 0;
+        int expectedPatchCount = 0;
 
-        for (int row = 0; row < rows; row++)
+        for (int areaIndex = 0; areaIndex < config.PatchAreas.Count; areaIndex++)
         {
-            for (int column = 0; column < columns; column++)
+            TutorialPatchArea area = config.PatchAreas[areaIndex];
+            if (area == null || area.PatchTile == null)
             {
-                Vector2Int position = firstPatchPosition + new Vector2Int(column, row);
-                FarmPatchState patch = FindOrBuildPatch(buildService, grid, position);
-                if (patch == null)
-                {
-                    continue;
-                }
+                setupSucceeded = false;
+                continue;
+            }
 
-                MakeCropMature(patch);
-                readyPatchCount++;
+            Vector2Int areaSize = area.Size;
+            expectedPatchCount += areaSize.x * areaSize.y;
+            for (int row = 0; row < areaSize.y; row++)
+            {
+                for (int column = 0; column < areaSize.x; column++)
+                {
+                    Vector2Int position = area.FirstPosition +
+                                          new Vector2Int(column, row);
+                    FarmPatchState patch = FindOrBuildPatch(
+                        buildService,
+                        grid,
+                        area.PatchTile,
+                        position);
+                    if (patch == null)
+                    {
+                        setupSucceeded = false;
+                        continue;
+                    }
+
+                    PrepareCrop(
+                        patch,
+                        area.StartingCrop,
+                        area.StartMature,
+                        area.GrowthDuration);
+                    readyPatchCount++;
+                }
             }
         }
 
-        bool featureTilesReady = true;
-        if (buildFeatureTiles)
+        for (int i = 0; i < config.TilePlacements.Count; i++)
         {
-            bool coopReady = FindOrBuildTile(
-                buildService,
-                grid,
-                chickenCoopTileId,
-                chickenCoopPosition);
-            bool requestBoardReady = FindOrBuildTile(
-                buildService,
-                grid,
-                requestBoardTileId,
-                requestBoardPosition);
-            featureTilesReady = coopReady && requestBoardReady;
+            TutorialTilePlacement placement = config.TilePlacements[i];
+            if (placement == null || placement.Tile == null ||
+                !FindOrBuildTile(
+                    buildService,
+                    grid,
+                    placement.Tile,
+                    placement.Position))
+            {
+                setupSucceeded = false;
+            }
         }
-        
-        FindOrBuildTile(buildService, grid, barnId, barnPosition);
-        FindOrBuildTile(buildService, grid, siloId, siloPosition);
 
-        _isSetup = readyPatchCount == columns * rows && featureTilesReady;
+        _isSetup = setupSucceeded && readyPatchCount == expectedPatchCount;
 
         if (verbose)
         {
-            Log.info($"[TutorialSetup] Prepared {readyPatchCount}/{columns * rows} mature wheat patches.");
+            Log.info($"[TutorialSetup] Prepared {readyPatchCount}/{expectedPatchCount} configured patches.");
         }
     }
 
-    private bool FindOrBuildTile(
+    private static bool FindOrBuildTile(
         TileBuildService buildService,
         GridService grid,
-        string tileId,
+        TileDefinitionSO definition,
         Vector2Int position)
     {
         if (grid.TryGetOccupant(position, out GridOccupant existing))
         {
-            return existing != null &&
-                   existing.GetComponent<TileInstance>() != null &&
-                   existing.GetComponent<TileInstance>().Definition.TileId == tileId;
+            TileInstance instance = existing != null
+                ? existing.GetComponent<TileInstance>()
+                : null;
+            return instance != null && instance.Definition == definition;
         }
 
-        TileBuildResult result = buildService.TryBuild(new TileBuildRequest(tileId, position));
+        TileBuildResult result = buildService.TryBuild(
+            new TileBuildRequest(definition.TileId, position));
         if (!result.Succeeded && verbose)
         {
-            Log.warning($"[TutorialSetup] Could not build '{tileId}' at {position}: {result.Message}");
+            Log.warning($"[TutorialSetup] Could not build '{definition.TileId}' at {position}: {result.Message}");
         }
 
         return result.Succeeded;
     }
 
-    private FarmPatchState FindOrBuildPatch(
+    private static FarmPatchState FindOrBuildPatch(
         TileBuildService buildService,
         GridService grid,
+        TileDefinitionSO definition,
         Vector2Int position)
     {
         if (grid.TryGetOccupant(position, out GridOccupant existing))
@@ -137,8 +142,8 @@ public sealed class TutorialSetup : MonoBehaviour
                 : null;
         }
 
-        var request = new TileBuildRequest(farmPatchTileId, position);
-        TileBuildResult result = buildService.TryBuild(request);
+        TileBuildResult result = buildService.TryBuild(
+            new TileBuildRequest(definition.TileId, position));
         if (!result.Succeeded)
         {
             if (verbose) Log.warning($"[TutorialSetup] Could not build patch at {position}: {result.Message}");
@@ -148,25 +153,26 @@ public sealed class TutorialSetup : MonoBehaviour
         return result.Tile.GetComponent<FarmPatchState>();
     }
 
-    private void MakeCropMature(FarmPatchState patch)
+    private static void PrepareCrop(
+        FarmPatchState patch,
+        ItemDefinitionSO crop,
+        bool startMature,
+        TimeSpan growthDuration)
     {
+        if (crop == null)
+        {
+            return;
+        }
+
         if (patch.CanPlant)
         {
-            patch.TryPlant(startingCropId, TimeSpan.Zero);
+            patch.TryPlant(
+                crop.ItemId,
+                startMature ? TimeSpan.Zero : growthDuration);
         }
-        else if (patch.CanSpeedUp)
+        else if (startMature && patch.CanSpeedUp)
         {
             patch.TryCompleteNow();
         }
-    }
-
-    private void OnValidate()
-    {
-        farmPatchTileId = farmPatchTileId == null ? string.Empty : farmPatchTileId.Trim();
-        startingCropId = startingCropId == null ? string.Empty : startingCropId.Trim();
-        chickenCoopTileId = chickenCoopTileId == null ? string.Empty : chickenCoopTileId.Trim();
-        requestBoardTileId = requestBoardTileId == null ? string.Empty : requestBoardTileId.Trim();
-        patchGridSize.x = Mathf.Max(1, patchGridSize.x);
-        patchGridSize.y = Mathf.Max(1, patchGridSize.y);
     }
 }

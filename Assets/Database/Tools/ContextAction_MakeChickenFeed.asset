@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0687e1a39c4668647b298e54918dcef3, type: 3}
+  m_Name: ContextAction_MakeChickenFeed
+  m_EditorClassIdentifier: Assembly-CSharp::ContextActionDefinitionSO
+  actionId: make_chicken_feed
+  displayName: Chicken Feed
+  icon: {fileID: -8224697633715539884, guid: 08d0cf37128f84a4f829be7966f2c456, type: 3}
+  order: 0
+  closeMenuOnExecute: 1
+  tool: {fileID: 0}

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public sealed class ContextAction
 {
-    private readonly Action _execute;
+    private readonly Func<bool> _tryExecute;
 
     public string ActionId { get; }
     public string DisplayName { get; }
@@ -30,17 +30,42 @@ public sealed class ContextAction
         IsEnabled = isEnabled;
         CloseMenuOnExecute = closeMenuOnExecute;
         Tool = tool;
-        _execute = execute;
+        _tryExecute = execute == null
+            ? null
+            : () =>
+            {
+                execute.Invoke();
+                return true;
+            };
+    }
+
+    public ContextAction(
+        string actionId,
+        string displayName,
+        Sprite icon,
+        int order,
+        bool isEnabled,
+        bool closeMenuOnExecute,
+        TileToolSO tool,
+        Func<bool> tryExecute)
+    {
+        ActionId = actionId;
+        DisplayName = displayName;
+        Icon = icon;
+        Order = order;
+        IsEnabled = isEnabled;
+        CloseMenuOnExecute = closeMenuOnExecute;
+        Tool = tool;
+        _tryExecute = tryExecute;
     }
 
     public bool TryExecute()
     {
-        if (!IsEnabled || _execute == null)
+        if (!IsEnabled || _tryExecute == null)
         {
             return false;
         }
 
-        _execute.Invoke();
-        return true;
+        return _tryExecute.Invoke();
     }
 }

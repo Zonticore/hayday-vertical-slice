@@ -5,15 +5,15 @@ public sealed class ChickenCoopState : MonoBehaviour, IStoreItemDropTarget
 {
     private const bool verbose = false;
 
-    private string _chickenItemId = "chicken";
-    private string _feedItemId = "chicken_feed";
-    private string _eggItemId = "egg";
+    private ItemDefinitionSO _chickenItem;
+    private ItemDefinitionSO _feedItem;
+    private ItemDefinitionSO _eggItem;
     private int _maxChickens = 6;
     private TimeSpan _productionDuration = TimeSpan.FromSeconds(15d);
-    private Sprite _eggSprite;
     private Vector3 _eggCollectionOffset = new Vector3(0f, 0.35f, 0f);
 
     private int _chickenCount;
+    private int _fedChickenCount;
     private int _pendingEggs;
     private ChickenCoopPhase _phase;
     private DateTime _readyAtUtc;
@@ -23,6 +23,7 @@ public sealed class ChickenCoopState : MonoBehaviour, IStoreItemDropTarget
     public event Action<ChickenCoopState> ChickenCountChanged;
 
     public int ChickenCount => _chickenCount;
+    public int FedChickenCount => _fedChickenCount;
     public int MaxChickens => _maxChickens;
     public int PendingEggs => _pendingEggs;
     public ChickenCoopPhase Phase => _phase;
@@ -34,41 +35,45 @@ public sealed class ChickenCoopState : MonoBehaviour, IStoreItemDropTarget
         !_claimInProgress;
     public bool IsClaimInProgress => _claimInProgress;
 
+    public bool CanAttemptFeed =>
+        (_phase == ChickenCoopPhase.Idle ||
+         _phase == ChickenCoopPhase.Producing) &&
+        _chickenCount > 0 &&
+        _fedChickenCount < _chickenCount;
+
     public bool CanFeed
     {
         get
         {
-            if (_phase != ChickenCoopPhase.Idle || _chickenCount <= 0)
+            if (!CanAttemptFeed)
+            {
+                return false;
+            }
+
+            if (_feedItem == null)
             {
                 return false;
             }
 
             UserModel user = UserModel.GetOrCreate();
-            return user.BarnStorage.GetQuantity(_feedItemId) >= _chickenCount;
+            return user.GetStorage(_feedItem.Storage)
+                       .GetQuantity(_feedItem.ItemId) >= 1;
         }
     }
 
     public void Initialize(
-        string chickenItemId,
-        string feedItemId,
-        string eggItemId,
+        ItemDefinitionSO chickenItem,
+        ItemDefinitionSO feedItem,
+        ItemDefinitionSO eggItem,
         int maxChickens,
         float productionSeconds,
-        Sprite eggSprite,
         Vector3 eggCollectionOffset)
     {
-        _chickenItemId = string.IsNullOrWhiteSpace(chickenItemId)
-            ? "chicken"
-            : chickenItemId.Trim();
-        _feedItemId = string.IsNullOrWhiteSpace(feedItemId)
-            ? "chicken_feed"
-            : feedItemId.Trim();
-        _eggItemId = string.IsNullOrWhiteSpace(eggItemId)
-            ? "egg"
-            : eggItemId.Trim();
+        _chickenItem = chickenItem;
+        _feedItem = feedItem;
+        _eggItem = eggItem;
         _maxChickens = Mathf.Max(1, maxChickens);
         _productionDuration = TimeSpan.FromSeconds(Mathf.Max(0f, productionSeconds));
-        _eggSprite = eggSprite;
         _eggCollectionOffset = eggCollectionOffset;
     }
 
@@ -77,7 +82,7 @@ public sealed class ChickenCoopState : MonoBehaviour, IStoreItemDropTarget
         if (_phase == ChickenCoopPhase.Producing && DateTime.UtcNow >= _readyAtUtc)
         {
             _phase = ChickenCoopPhase.Ready;
-            _pendingEggs = _chickenCount;
+            _pendingEggs = _fedChickenCount;
             StateChanged?.Invoke(this);
 
             if (verbose)
@@ -89,7 +94,8 @@ public sealed class ChickenCoopState : MonoBehaviour, IStoreItemDropTarget
 
     public bool CanAccept(StoreItemData item)
     {
-        if (item == null || item.ItemId != _chickenItemId || !CanAddChicken)
+        if (item == null || _chickenItem == null ||
+            item.ItemId != _chickenItem.ItemId || !CanAddChicken)
         {
             return false;
         }
@@ -131,17 +137,35 @@ public sealed class ChickenCoopState : MonoBehaviour, IStoreItemDropTarget
         }
 
         UserModel user = UserModel.GetOrCreate();
-        if (!user.TryRemoveItem(StorageType.Barn, _feedItemId, _chickenCount))
+        if (_feedItem == null ||
+            !user.TryRemoveItem(
+                _feedItem.Storage,
+                _feedItem.ItemId,
+                1))
         {
             return false;
         }
 
-        _phase = _productionDuration <= TimeSpan.Zero
-            ? ChickenCoopPhase.Ready
-            : ChickenCoopPhase.Producing;
-        _readyAtUtc = DateTime.UtcNow.Add(_productionDuration);
-        _pendingEggs = _phase == ChickenCoopPhase.Ready ? _chickenCount : 0;
+        _fedChickenCount++;
+
+        if (_phase == ChickenCoopPhase.Idle)
+        {
+            _phase = _productionDuration <= TimeSpan.Zero
+                ? ChickenCoopPhase.Ready
+                : ChickenCoopPhase.Producing;
+            _readyAtUtc = DateTime.UtcNow.Add(_productionDuration);
+        }
+
+        _pendingEggs = _phase == ChickenCoopPhase.Ready
+            ? _fedChickenCount
+            : 0;
         StateChanged?.Invoke(this);
+
+        if (verbose)
+        {
+            Log.info($"[ChickenCoopState] Fed {_fedChickenCount}/{_chickenCount} chickens.");
+        }
+
         return true;
     }
 
@@ -153,7 +177,13 @@ public sealed class ChickenCoopState : MonoBehaviour, IStoreItemDropTarget
         }
 
         UserModel user = UserModel.GetOrCreate();
-        int claimAmount = Mathf.Min(_pendingEggs, user.BarnStorage.RemainingCapacity);
+        if (_eggItem == null)
+        {
+            return false;
+        }
+
+        ItemStorageModel eggStorage = user.GetStorage(_eggItem.Storage);
+        int claimAmount = Mathf.Min(_pendingEggs, eggStorage.RemainingCapacity);
         if (claimAmount <= 0)
         {
             return false;
@@ -166,9 +196,9 @@ public sealed class ChickenCoopState : MonoBehaviour, IStoreItemDropTarget
         if (display != null)
         {
             display.FlyItem(
-                _eggSprite,
+                _eggItem.Sprite,
                 transform.position + _eggCollectionOffset,
-                StorageType.Barn,
+                _eggItem.Storage,
                 () => CompleteClaim(claimAmount));
         }
         else
@@ -182,13 +212,24 @@ public sealed class ChickenCoopState : MonoBehaviour, IStoreItemDropTarget
     private void CompleteClaim(int requestedAmount)
     {
         UserModel user = UserModel.GetOrCreate();
-        int accepted = user.AddItem(StorageType.Barn, _eggItemId, requestedAmount);
+        if (_eggItem == null)
+        {
+            _claimInProgress = false;
+            StateChanged?.Invoke(this);
+            return;
+        }
+
+        int accepted = user.AddItem(
+            _eggItem.Storage,
+            _eggItem.ItemId,
+            requestedAmount);
         _pendingEggs -= accepted;
         _claimInProgress = false;
 
         if (_pendingEggs <= 0)
         {
             _pendingEggs = 0;
+            _fedChickenCount = 0;
             _phase = ChickenCoopPhase.Idle;
             _readyAtUtc = default(DateTime);
         }

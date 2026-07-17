@@ -58,4 +58,18 @@ public sealed class StoreItemData
             StoreItemKind.Building,
             definition.TileId);
     }
+
+    public static StoreItemData CreateAnimal(ItemDefinitionSO definition, int cost)
+    {
+        if (definition == null)
+        {
+            return null;
+        }
+
+        return new StoreItemData(
+            definition.ItemId,
+            definition.DisplayName,
+            definition.Sprite,
+            cost);
+    }
 }

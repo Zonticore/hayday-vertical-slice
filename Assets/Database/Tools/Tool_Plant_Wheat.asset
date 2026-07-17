@@ -13,5 +13,5 @@ MonoBehaviour:
   m_Name: Tool_Plant_Wheat
   m_EditorClassIdentifier: Assembly-CSharp::PlantToolSO
   toolId: plant_wheat
-  cropId: wheat
+  crop: {fileID: 11400000, guid: b1111111111111111111111111111101, type: 2}
   growthDurationSeconds: 60

@@ -31,6 +31,21 @@ public sealed class ContextActionDefinitionSO : ScriptableObject
             execute);
     }
 
+    public ContextAction CreateRuntimeActionWithResult(
+        bool isEnabled,
+        Func<bool> tryExecute)
+    {
+        return new ContextAction(
+            actionId,
+            displayName,
+            icon,
+            order,
+            isEnabled,
+            closeMenuOnExecute,
+            tool,
+            tryExecute);
+    }
+
     private void OnValidate()
     {
         actionId = actionId == null ? string.Empty : actionId.Trim();

@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 40cd19fdef2be7d46a04d09d864f1d0b, type: 3}
+  m_Name: Factory_FeedMill
+  m_EditorClassIdentifier: Assembly-CSharp::FeedMillTileFactorySO
+  chickenFeedRecipe: {fileID: 11400000, guid: 476ad8a6054d4f0f97d09c1eb0e3d8f6, type: 2}
+  makeFeedAction: {fileID: 11400000, guid: ee1f261c878c4156a6a27401836cfd9b, type: 2}
+  collectFeedAction: {fileID: 11400000, guid: 061e1577ba4540d9aa9caa289fad1629, type: 2}
+  speedUpAction: {fileID: 11400000, guid: aca1c61d6c37e1240b98924ca1543e8b, type: 2}
+  idleSprite: {fileID: 7458319264012387654, guid: 8ff61e75faa94cf6ba6e61e43527b40e, type: 3}
+  workingSprite: {fileID: 7458319264012387654, guid: 8ff61e75faa94cf6ba6e61e43527b40e, type: 3}
+  readySprite: {fileID: 7458319264012387654, guid: 8ff61e75faa94cf6ba6e61e43527b40e, type: 3}
+  outputOffset: {x: 0, y: 0.8, z: 0}
+  outputScale: 0.2

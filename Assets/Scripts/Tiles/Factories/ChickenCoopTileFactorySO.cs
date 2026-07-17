@@ -6,26 +6,26 @@ using UnityEngine;
 public sealed class ChickenCoopTileFactorySO : TileFactorySO
 {
     [Header("Items")]
-    [SerializeField] private string chickenItemId = "chicken";
-    [SerializeField] private string feedItemId = "chicken_feed";
-    [SerializeField] private string eggItemId = "egg";
+    [SerializeField] private ItemDefinitionSO chickenItem;
+    [SerializeField] private ItemDefinitionSO feedItem;
+    [SerializeField] private ItemDefinitionSO eggItem;
 
     [Header("Production")]
     [SerializeField, Min(1)] private int maxChickens = 6;
     [SerializeField, Min(0f)] private float productionSeconds = 15f;
 
     [Header("Visuals")]
-    [SerializeField] private Sprite fedCoopSprite;
-    [SerializeField] private Sprite chickenSprite;
-    [SerializeField] private Sprite eggSprite;
+    [SerializeField] private Sprite producingChickenSprite;
+    [SerializeField] private Sprite emptyTroughSprite;
+    [SerializeField] private Sprite filledTroughSprite;
+    [SerializeField] private Vector3 troughOffset = new Vector3(2.6f, -0.65f, 0f);
+    [SerializeField] private Vector3 troughScale = new Vector3(0.55f, 0.55f, 1f);
     [SerializeField] private Vector3 eggCollectionOffset = new Vector3(0f, 0.35f, 0f);
     [SerializeField] private Vector3[] chickenOffsets;
 
-    [Header("Context Icons")]
-    [SerializeField] private Sprite feedActionIcon;
-    [SerializeField] private Sprite claimActionIcon;
-
-    public Sprite ChickenSprite => chickenSprite;
+    [Header("Context Actions")]
+    [SerializeField] private ContextActionDefinitionSO feedAction;
+    [SerializeField] private ContextActionDefinitionSO claimAction;
 
     protected override void Configure(
         TileInstance instance,
@@ -38,12 +38,11 @@ public sealed class ChickenCoopTileFactorySO : TileFactorySO
 
         ChickenCoopState state = target.AddComponent<ChickenCoopState>();
         state.Initialize(
-            chickenItemId,
-            feedItemId,
-            eggItemId,
+            chickenItem,
+            feedItem,
+            eggItem,
             maxChickens,
             productionSeconds,
-            eggSprite,
             eggCollectionOffset);
 
         ChickenCoopVisual visual = target.AddComponent<ChickenCoopVisual>();
@@ -51,21 +50,22 @@ public sealed class ChickenCoopTileFactorySO : TileFactorySO
             state,
             instance.SpriteRenderer,
             definition.Sprite,
-            fedCoopSprite,
-            chickenSprite,
-            eggSprite,
+            chickenItem != null ? chickenItem.Sprite : null,
+            producingChickenSprite,
+            eggItem != null ? eggItem.Sprite : null,
+            emptyTroughSprite,
+            filledTroughSprite,
+            troughOffset,
+            troughScale,
             chickenOffsets);
 
         ChickenCoopActionProvider actions =
             target.AddComponent<ChickenCoopActionProvider>();
-        actions.Initialize(state, feedActionIcon, claimActionIcon);
+        actions.Initialize(state, feedAction, claimAction);
     }
 
     private void OnValidate()
     {
-        chickenItemId = chickenItemId == null ? string.Empty : chickenItemId.Trim();
-        feedItemId = feedItemId == null ? string.Empty : feedItemId.Trim();
-        eggItemId = eggItemId == null ? string.Empty : eggItemId.Trim();
         maxChickens = Mathf.Max(1, maxChickens);
         productionSeconds = Mathf.Max(0f, productionSeconds);
     }

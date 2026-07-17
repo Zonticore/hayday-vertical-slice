@@ -15,18 +15,12 @@ public sealed class StoreScreen : UIScreen
 
     [SerializeField] private RectTransform storeItemsContainer;
     [SerializeField] private GameObject storeItemPrefab;
+    [SerializeField] private StoreCatalogSO catalog;
 
     [Header("Tabs")]
     [SerializeField] private Button animalsButton;
     [SerializeField] private Button buildingsButton;
     [SerializeField] private StoreSection defaultSection = StoreSection.Animals;
-
-    [Header("Chicken")]
-    [SerializeField] private string chickenItemId = "chicken";
-    [SerializeField] private string chickenDisplayName = "Chicken";
-    [SerializeField] private string chickenCoopTileId = "coop";
-    [SerializeField] private Sprite chickenSprite;
-    [SerializeField, Min(0)] private int chickenCost = 5;
 
     private readonly List<StoreItem> _createdStoreItems = new List<StoreItem>();
     private readonly List<StoreItemData> _visibleItems = new List<StoreItemData>();
@@ -152,33 +146,15 @@ public sealed class StoreScreen : UIScreen
 
     private void PopulateAnimalItems()
     {
-        _visibleItems.Add(new StoreItemData(
-            chickenItemId,
-            chickenDisplayName,
-            ResolveChickenSprite(),
-            chickenCost));
-    }
-
-    private void PopulateBuildingItems()
-    {
-        RegistryService registries = RegistryService.instance;
-        TileRegistrySO tileRegistry = registries != null ? registries.TileRegistry : null;
-        if (tileRegistry == null)
+        if (catalog == null)
         {
-            if (verbose) Log.warning("[StoreScreen] Tile registry is unavailable.");
+            if (verbose) Log.warning("[StoreScreen] Store catalog is not assigned.");
             return;
         }
 
-        IReadOnlyList<TileDefinitionSO> definitions = tileRegistry.Tiles;
-        for (int i = 0; i < definitions.Count; i++)
+        for (int i = 0; i < catalog.Animals.Count; i++)
         {
-            TileDefinitionSO definition = definitions[i];
-            if (!IsStoreBuilding(definition))
-            {
-                continue;
-            }
-
-            StoreItemData item = StoreItemData.CreateBuilding(definition);
+            StoreItemData item = catalog.Animals[i]?.CreateRuntimeData();
             if (item != null)
             {
                 _visibleItems.Add(item);
@@ -186,12 +162,23 @@ public sealed class StoreScreen : UIScreen
         }
     }
 
-    private static bool IsStoreBuilding(TileDefinitionSO definition)
+    private void PopulateBuildingItems()
     {
-        return definition != null &&
-               definition.Factory != null &&
-               definition.Sprite != null &&
-               definition.Category != TileCategory.Terrain;
+        if (catalog == null)
+        {
+            if (verbose) Log.warning("[StoreScreen] Store catalog is not assigned.");
+            return;
+        }
+
+        for (int i = 0; i < catalog.Buildings.Count; i++)
+        {
+            TileDefinitionSO definition = catalog.Buildings[i];
+            StoreItemData item = StoreItemData.CreateBuilding(definition);
+            if (item != null)
+            {
+                _visibleItems.Add(item);
+            }
+        }
     }
 
     private StoreItem CreateStoreItem()
@@ -221,25 +208,6 @@ public sealed class StoreScreen : UIScreen
 
         StoreItem storeItem = createdObject.GetComponent<StoreItem>();
         return storeItem != null ? storeItem : createdObject.AddComponent<StoreItem>();
-    }
-
-    private Sprite ResolveChickenSprite()
-    {
-        if (chickenSprite != null)
-        {
-            return chickenSprite;
-        }
-
-        RegistryService registries = RegistryService.instance;
-        if (registries != null &&
-            registries.TileRegistry != null &&
-            registries.TileRegistry.TryGet(chickenCoopTileId, out TileDefinitionSO coop) &&
-            coop.Factory is ChickenCoopTileFactorySO coopFactory)
-        {
-            chickenSprite = coopFactory.ChickenSprite;
-        }
-
-        return chickenSprite;
     }
 
     private void EnsureTabButtons()
@@ -299,15 +267,4 @@ public sealed class StoreScreen : UIScreen
         }
     }
 
-    private void OnValidate()
-    {
-        chickenItemId = chickenItemId == null ? string.Empty : chickenItemId.Trim();
-        chickenDisplayName = chickenDisplayName == null
-            ? string.Empty
-            : chickenDisplayName.Trim();
-        chickenCoopTileId = chickenCoopTileId == null
-            ? string.Empty
-            : chickenCoopTileId.Trim();
-        chickenCost = Mathf.Max(0, chickenCost);
-    }
 }

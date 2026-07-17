@@ -22,6 +22,16 @@ public sealed class RequestBoardTileInteraction : MonoBehaviour, IPrimaryInterac
             return;
         }
 
+        for (int i = 0; i < ui.allScreens.Count; i++)
+        {
+            if (ui.allScreens[i] is RequestBoardScreen requestBoardScreen &&
+                requestBoardScreen.screenId == _screenId)
+            {
+                requestBoardScreen.SetRewardWorldPosition(transform.position);
+                break;
+            }
+        }
+
         ui.showScreen(_screenId);
     }
 }

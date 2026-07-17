@@ -5,22 +5,11 @@ public sealed class UserModel : MonoBehaviourSingleton<UserModel>
 {
     private const bool verbose = false;
 
-    [Header("Identity")]
-    [SerializeField] private string farmName = "My Farm";
-
-    [Header("Starting Storage")]
-    [SerializeField, Min(1)] private int barnCapacity = 50;
-    [SerializeField, Min(1)] private int grainCapacity = 50;
-
-    [Header("Starting Progress")]
-    [SerializeField, Min(0)] private int coins = 100;
-    [SerializeField, Min(1)] private int level = 1;
-    [SerializeField, Min(0)] private int experience;
-    [SerializeField, Min(1)] private int baseExperienceToLevel = 10;
-
-    [Header("Starting Inventory")]
-    [SerializeField] private string startingFeedItemId = "chicken_feed";
-    [SerializeField, Min(0)] private int startingFeedAmount = 12;
+    private string farmName;
+    private int coins;
+    private int level;
+    private int experience;
+    private int baseExperienceToLevel;
 
     public event Action<string> FarmNameChanged;
     public event Action<StorageType, string, int, int> ItemQuantityChanged;
@@ -43,14 +32,35 @@ public sealed class UserModel : MonoBehaviourSingleton<UserModel>
             return;
         }
 
-        BarnStorage = new ItemStorageModel(barnCapacity);
-        GrainStorage = new ItemStorageModel(grainCapacity);
+        RegistryService registries = RegistryService.instance;
+        UserStartingConfigSO config = registries != null
+            ? registries.UserStartingConfig
+            : null;
+
+        farmName = config != null ? config.FarmName : "My Farm";
+        coins = config != null ? config.Coins : 0;
+        level = config != null ? config.Level : 1;
+        experience = config != null ? config.Experience : 0;
+        baseExperienceToLevel = config != null
+            ? config.BaseExperienceToLevel
+            : 10;
+
+        BarnStorage = new ItemStorageModel(config != null ? config.BarnCapacity : 50);
+        GrainStorage = new ItemStorageModel(config != null ? config.GrainCapacity : 50);
         BarnStorage.ItemQuantityChanged += HandleBarnQuantityChanged;
         GrainStorage.ItemQuantityChanged += HandleGrainQuantityChanged;
 
-        if (startingFeedAmount > 0 && !string.IsNullOrWhiteSpace(startingFeedItemId))
+        if (config != null)
         {
-            BarnStorage.Add(startingFeedItemId, startingFeedAmount);
+            for (int i = 0; i < config.Inventory.Count; i++)
+            {
+                StartingInventoryEntry entry = config.Inventory[i];
+                ItemDefinitionSO item = entry?.Item;
+                if (item != null && entry.Amount > 0)
+                {
+                    GetStorage(item.Storage).Add(item.ItemId, entry.Amount);
+                }
+            }
         }
 
         DontDestroyOnLoad(gameObject);
@@ -168,18 +178,4 @@ public sealed class UserModel : MonoBehaviourSingleton<UserModel>
         }
     }
 
-    private void OnValidate()
-    {
-        farmName = string.IsNullOrWhiteSpace(farmName) ? "My Farm" : farmName.Trim();
-        barnCapacity = Mathf.Max(1, barnCapacity);
-        grainCapacity = Mathf.Max(1, grainCapacity);
-        coins = Mathf.Max(0, coins);
-        level = Mathf.Max(1, level);
-        experience = Mathf.Max(0, experience);
-        baseExperienceToLevel = Mathf.Max(1, baseExperienceToLevel);
-        startingFeedItemId = startingFeedItemId == null
-            ? string.Empty
-            : startingFeedItemId.Trim();
-        startingFeedAmount = Mathf.Max(0, startingFeedAmount);
-    }
 }

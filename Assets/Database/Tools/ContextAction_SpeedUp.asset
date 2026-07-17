@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ContextActionDefinitionSO
   actionId: SpeedUp
   displayName: SpeedUp
-  icon: {fileID: -6399739099826801693, guid: 8f0567d0c9108c44d9ae8afeb455a63f, type: 3}
+  icon: {fileID: 3611447642871172726, guid: f2af2f1a2b85ad24b8b5a393d3b5e145, type: 3}
   order: 0
   closeMenuOnExecute: 1
   tool: {fileID: 0}

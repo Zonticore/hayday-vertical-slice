@@ -193,10 +193,10 @@ RectTransform:
   - {fileID: 2091493022}
   m_Father: {fileID: 46248505}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 879.31384, y: 0}
-  m_SizeDelta: {x: 1105, y: 1305.2036}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 908.86, y: 0}
+  m_SizeDelta: {x: 1105, y: -854.7964}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &46477740
 MonoBehaviour:
@@ -251,14 +251,10 @@ MonoBehaviour:
   screenId: store
   storeItemsContainer: {fileID: 1182568588}
   storeItemPrefab: {fileID: 7050790010861941645, guid: 465f87efbe9eedf42980ed5ebc0336f9, type: 3}
+  catalog: {fileID: 11400000, guid: c1111111111111111111111111111102, type: 2}
   animalsButton: {fileID: 0}
   buildingsButton: {fileID: 0}
   defaultSection: 0
-  chickenItemId: chicken
-  chickenDisplayName: Chicken
-  chickenCoopTileId: coop
-  chickenSprite: {fileID: 0}
-  chickenCost: 5
 --- !u!224 &70252102 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5582821139928741726, guid: 38aabef637ab73a46ab9a27b6e28f79f, type: 3}
@@ -308,9 +304,9 @@ RectTransform:
   - {fileID: 342154375}
   m_Father: {fileID: 1296836945}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 829.5, y: -185.5}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 1113.0806, y: -176.40173}
   m_SizeDelta: {x: 657, y: 271}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &88323994
@@ -806,9 +802,9 @@ RectTransform:
   - {fileID: 1396910717}
   m_Father: {fileID: 1296836945}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -59, y: 973}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 257.45508, y: -176.40173}
   m_SizeDelta: {x: 296, y: 82.56885}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &295815769
@@ -1006,6 +1002,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::RegistryService
   tileRegistry: {fileID: 11400000, guid: 4f38bd7460fd0c9408618230dc72eb50, type: 2}
+  userStartingConfig: {fileID: 11400000, guid: c1111111111111111111111111111106, type: 2}
 --- !u!4 &452419388
 Transform:
   m_ObjectHideFlags: 0
@@ -1057,7 +1054,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 1.248169, y: 177.01251}
+  m_AnchoredPosition: {x: 1.2480469, y: 177.01251}
   m_SizeDelta: {x: 233, y: 233}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &508877770
@@ -1314,9 +1311,9 @@ RectTransform:
   - {fileID: 1063589791}
   m_Father: {fileID: 1296836945}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 1}
-  m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 280, y: -100}
+  m_AnchorMin: {x: 0, y: 1}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 596.4551, y: -169.40173}
   m_SizeDelta: {x: 296, y: 189.28442}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &618907952
@@ -1684,6 +1681,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d11a1516392546e4a237e72f6a37177e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TutorialSetup
+  config: {fileID: 11400000, guid: c1111111111111111111111111111101, type: 2}
 --- !u!4 &1134430973
 Transform:
   m_ObjectHideFlags: 0
@@ -2051,7 +2049,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10905, guid: 0000000000000000f000000000000000, type: 0}
+  m_Sprite: {fileID: 5202540133125880490, guid: 7456aeb918435954882f757bf31fe3bf, type: 3}
   m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2060,7 +2058,7 @@ MonoBehaviour:
   m_FillClockwise: 1
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
+  m_PixelsPerUnitMultiplier: 3.88
 --- !u!222 &1293446226
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -2118,12 +2116,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0cd44c1031e13a943bb63640046fad76, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.CanvasScaler
-  m_UiScaleMode: 0
+  m_UiScaleMode: 1
   m_ReferencePixelsPerUnit: 100
   m_ScaleFactor: 1
-  m_ReferenceResolution: {x: 800, y: 600}
+  m_ReferenceResolution: {x: 3840, y: 2160}
   m_ScreenMatchMode: 0
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 0.888
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -2710,10 +2708,10 @@ RectTransform:
   - {fileID: 1293446223}
   m_Father: {fileID: 46248505}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
-  m_AnchoredPosition: {x: 2283.314, y: 0}
-  m_SizeDelta: {x: 1105, y: 1305.2036}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 0, y: 1}
+  m_AnchoredPosition: {x: 908.86, y: 0}
+  m_SizeDelta: {x: 1105, y: -854.7964}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1702701370
 MonoBehaviour:
@@ -2733,15 +2731,7 @@ MonoBehaviour:
   itemDisplayPrefab: {fileID: 3358310606672555478, guid: a9b39ba9d613b904ea6b0b777a38ed9e, type: 3}
   timeUntilNextOrder: {fileID: 1872704220}
   submitButton: {fileID: 1293446224}
-  requestedItemId: wheat
-  requestedStorage: 1
-  requestedItemSprite: {fileID: 4829816501209104512, guid: 2709e1a0c5edabb40b72a850b2379bd0, type: 3}
-  requestedAmount: 3
-  goldSprite: {fileID: 4252207737470138954, guid: ef8b2195a9a4e7d4899cf2c533c1d1b9, type: 3}
-  goldReward: 10
-  experienceSprite: {fileID: 428310065403587307, guid: c02622c39eed0c640b91582564b1249c, type: 3}
-  experienceReward: 5
-  orderCooldownSeconds: 5
+  config: {fileID: 11400000, guid: c1111111111111111111111111111105, type: 2}
 --- !u!114 &1702701371
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3598,7 +3588,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
-  m_AnchoredPosition: {x: 1.248169, y: 424.12}
+  m_AnchoredPosition: {x: 1.2480469, y: 424.12}
   m_SizeDelta: {x: 233, y: 233}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &2091493023
