@@ -12,6 +12,15 @@ public sealed class InteractionController : MonoBehaviourSingleton<InteractionCo
             return;
         }
 
+        if (ComponentInterfaceUtility.TryGetInterfaceInParent(
+                target,
+                out IPrimaryInteraction primaryInteraction))
+        {
+            ContextMenuController.instance.Close();
+            primaryInteraction.Interact(screenPosition);
+            return;
+        }
+
         ContextActionSource source = target.GetComponentInParent<ContextActionSource>();
         if (source == null)
         {

@@ -20,6 +20,7 @@ public sealed class FarmPatchTileFactorySO : TileFactorySO
     [Header("Harvest Reward")]
     [SerializeField] private Sprite harvestRewardSprite;
     [SerializeField, Min(1)] private int harvestRewardAmount = 2;
+    [SerializeField, Min(0)] private int harvestExperienceReward = 1;
     [SerializeField, Min(0.05f)] private float rewardLifetimeSeconds = 0.8f;
     [SerializeField, Min(0f)] private float rewardHopHeight = 0.35f;
     [SerializeField] private Vector3 rewardOffset = new Vector3(0f, 0.35f, 0f);
@@ -57,7 +58,8 @@ public sealed class FarmPatchTileFactorySO : TileFactorySO
             harvestRewardAmount,
             rewardLifetimeSeconds,
             rewardHopHeight,
-            rewardOffset);
+            rewardOffset,
+            harvestExperienceReward);
 
         PlantActionProvider planting = target.AddComponent<PlantActionProvider>();
         planting.Initialize(patch, plantAction);
@@ -73,6 +75,7 @@ public sealed class FarmPatchTileFactorySO : TileFactorySO
     {
         harvestedDisplaySeconds = Mathf.Max(0f, harvestedDisplaySeconds);
         harvestRewardAmount = Mathf.Max(1, harvestRewardAmount);
+        harvestExperienceReward = Mathf.Max(0, harvestExperienceReward);
         rewardLifetimeSeconds = Mathf.Max(0.05f, rewardLifetimeSeconds);
         rewardHopHeight = Mathf.Max(0f, rewardHopHeight);
     }

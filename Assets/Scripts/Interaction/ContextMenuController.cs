@@ -13,6 +13,7 @@ public sealed class ContextMenuController : MonoBehaviourSingleton<ContextMenuCo
 
     public IReadOnlyList<ContextAction> CurrentActions => _currentActions;
     public bool IsOpen { get; private set; }
+    public Vector3 CurrentTargetWorldPosition { get; private set; }
 
     public void Open(ContextActionSource source, Vector2 screenPosition)
     {
@@ -29,6 +30,7 @@ public sealed class ContextMenuController : MonoBehaviourSingleton<ContextMenuCo
             return;
         }
 
+        CurrentTargetWorldPosition = source.transform.position;
         IsOpen = true;
         Opened?.Invoke(_currentActions, screenPosition);
 
@@ -72,6 +74,7 @@ public sealed class ContextMenuController : MonoBehaviourSingleton<ContextMenuCo
 
         IsOpen = false;
         _currentActions = Array.Empty<ContextAction>();
+        CurrentTargetWorldPosition = Vector3.zero;
         Closed?.Invoke();
 
         if (verbose) Log.info("[ContextMenuController] Closed.");

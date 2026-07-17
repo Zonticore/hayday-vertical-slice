@@ -25,6 +25,7 @@ public sealed class ContextMenuDisplay : MonoBehaviour
     private bool _isSubscribed;
     private int _draggingActionIndex = -1;
     private bool _closeMenuAfterDrag;
+    private Vector2 _lastTrackedScreenPosition = new Vector2(float.NaN, float.NaN);
 
     private void Awake()
     {
@@ -52,6 +53,23 @@ public sealed class ContextMenuDisplay : MonoBehaviour
     private void Start()
     {
         Subscribe();
+    }
+
+    private void LateUpdate()
+    {
+        ContextMenuController controller = ContextMenuController.instance;
+        Camera worldCamera = Camera.main;
+        if (controller == null || !controller.IsOpen || worldCamera == null || displayRoot == null)
+        {
+            return;
+        }
+
+        Vector2 screenPosition = worldCamera.WorldToScreenPoint(controller.CurrentTargetWorldPosition);
+        if (Vector2.SqrMagnitude(screenPosition - _lastTrackedScreenPosition) > 0.25f)
+        {
+            PositionNextToTile(screenPosition);
+            _lastTrackedScreenPosition = screenPosition;
+        }
     }
 
     private void OnDisable()
@@ -126,6 +144,7 @@ public sealed class ContextMenuDisplay : MonoBehaviour
         }
 
         PositionNextToTile(tileScreenPosition);
+        _lastTrackedScreenPosition = tileScreenPosition;
 
         if (verbose)
         {
@@ -142,6 +161,8 @@ public sealed class ContextMenuDisplay : MonoBehaviour
         {
             displayRoot.gameObject.SetActive(false);
         }
+
+        _lastTrackedScreenPosition = new Vector2(float.NaN, float.NaN);
 
         if (verbose) Log.info("[ContextMenuDisplay] Context menu closed.");
     }

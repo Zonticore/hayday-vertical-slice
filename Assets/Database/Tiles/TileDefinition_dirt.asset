@@ -1,0 +1,19 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c493291cbd328ff4ba098839000f7ae2, type: 3}
+  m_Name: TileDefinition_dirt
+  m_EditorClassIdentifier: Assembly-CSharp::TileDefinitionSO
+  tileId: dirt
+  sprite: {fileID: -2845743812910023557, guid: 970e17c8e66de744bba0aef51db68c1b, type: 3}
+  category: 0
+  footprint: {x: 1, y: 1}
+  factory: {fileID: 11400000, guid: ca8d720c533f7674e8d078695471d988, type: 2}

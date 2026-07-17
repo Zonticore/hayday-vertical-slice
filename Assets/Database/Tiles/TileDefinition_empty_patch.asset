@@ -14,6 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TileDefinitionSO
   tileId: crop_empty
   sprite: {fileID: -508472668195915462, guid: 17b0b1152d2d030438d2fd53fb9cfd0c, type: 3}
-  category: 0
+  category: 1
   footprint: {x: 1, y: 1}
   factory: {fileID: 11400000, guid: 7afdfe40a5c4f3847bb341a6e301a3c2, type: 2}

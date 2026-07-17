@@ -20,4 +20,21 @@ public static class ComponentInterfaceUtility
         result = null;
         return false;
     }
+
+    public static bool TryGetInterfaceInParent<T>(GameObject target, out T result) where T : class
+    {
+        Transform current = target != null ? target.transform : null;
+        while (current != null)
+        {
+            if (TryGetInterface(current.gameObject, out result))
+            {
+                return true;
+            }
+
+            current = current.parent;
+        }
+
+        result = null;
+        return false;
+    }
 }

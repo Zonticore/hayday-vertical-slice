@@ -9,6 +9,7 @@ public sealed class FarmPatchHarvestRewardSpawner : MonoBehaviour
     private float _rewardLifetimeSeconds;
     private float _rewardHopHeight;
     private Vector3 _rewardOffset;
+    private int _experienceReward;
 
     public void Initialize(
         FarmPatchState patch,
@@ -17,7 +18,8 @@ public sealed class FarmPatchHarvestRewardSpawner : MonoBehaviour
         int rewardAmount,
         float rewardLifetimeSeconds,
         float rewardHopHeight,
-        Vector3 rewardOffset)
+        Vector3 rewardOffset,
+        int experienceReward)
     {
         Unsubscribe();
         _patch = patch;
@@ -27,6 +29,7 @@ public sealed class FarmPatchHarvestRewardSpawner : MonoBehaviour
         _rewardLifetimeSeconds = Mathf.Max(0.05f, rewardLifetimeSeconds);
         _rewardHopHeight = Mathf.Max(0f, rewardHopHeight);
         _rewardOffset = rewardOffset;
+        _experienceReward = Mathf.Max(0, experienceReward);
         Subscribe();
     }
 
@@ -72,6 +75,12 @@ public sealed class FarmPatchHarvestRewardSpawner : MonoBehaviour
             StorageType.Grain,
             _rewardLifetimeSeconds,
             _rewardHopHeight);
+
+        XpDisplay xpDisplay = XpDisplay.instance;
+        if (xpDisplay != null && _experienceReward > 0)
+        {
+            xpDisplay.GainExperience(_experienceReward, rewardObject.transform.position);
+        }
     }
 
     private void OnDestroy()

@@ -13,6 +13,7 @@ public sealed class HarvestRewardItem : MonoBehaviour
     private Vector3 _startPosition;
     private Vector3 _startScale;
     private bool _rewardGranted;
+    private Sprite _sprite;
 
     public void Initialize(
         string itemId,
@@ -28,6 +29,8 @@ public sealed class HarvestRewardItem : MonoBehaviour
         _hopHeight = Mathf.Max(0f, hopHeight);
         _startPosition = transform.position;
         _startScale = transform.localScale;
+        SpriteRenderer spriteRenderer = GetComponent<SpriteRenderer>();
+        _sprite = spriteRenderer != null ? spriteRenderer.sprite : null;
     }
 
     private void Update()
@@ -44,9 +47,18 @@ public sealed class HarvestRewardItem : MonoBehaviour
 
         if (_elapsed >= _lifetimeSeconds)
         {
-            GrantReward();
+            FlyToStorage();
             Destroy(gameObject);
         }
+    }
+
+    private void FlyToStorage()
+    {
+        StorageHudDisplay display = StorageHudDisplay.instance;
+        if (display != null)
+            display.FlyItem(_sprite, transform.position, _storageType, GrantReward);
+        else
+            GrantReward();
     }
 
     private void GrantReward()

@@ -14,3 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::TileRegistrySO
   tiles:
   - {fileID: 11400000, guid: 18836cbcc4f2971439131c355c4a3304, type: 2}
+  - {fileID: 11400000, guid: 9d7cbf08ee0a38d4980c24615d548a5c, type: 2}
+  - {fileID: 11400000, guid: 8868b53d19d7a4e43b9398caf67a30d6, type: 2}
+  - {fileID: 11400000, guid: fcf689af3abf4ce41b485c3691364a38, type: 2}
+  - {fileID: 11400000, guid: 9f1d648176e74432aa5927caf08e4d82, type: 2}
