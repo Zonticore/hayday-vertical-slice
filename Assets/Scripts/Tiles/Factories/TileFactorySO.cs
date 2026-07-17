@@ -50,6 +50,11 @@ public abstract class TileFactorySO : ScriptableObject
                 definition.Footprint,
                 context.Request.Orientation));
 
+        PolygonCollider2D visualCollider = tileObject.AddComponent<PolygonCollider2D>();
+        visualCollider.isTrigger = true;
+        TileVisualHitArea visualHitArea = tileObject.AddComponent<TileVisualHitArea>();
+        visualHitArea.Initialize(spriteRenderer, visualCollider);
+
         GridOccupant occupant = tileObject.AddComponent<GridOccupant>();
         occupant.Initialize(
             context.Grid,

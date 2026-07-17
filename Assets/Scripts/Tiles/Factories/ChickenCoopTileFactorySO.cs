@@ -18,6 +18,7 @@ public sealed class ChickenCoopTileFactorySO : TileFactorySO
     [SerializeField] private Sprite fedCoopSprite;
     [SerializeField] private Sprite chickenSprite;
     [SerializeField] private Sprite eggSprite;
+    [SerializeField] private Vector3 eggCollectionOffset = new Vector3(0f, 0.35f, 0f);
     [SerializeField] private Vector3[] chickenOffsets;
 
     [Header("Context Icons")]
@@ -41,7 +42,9 @@ public sealed class ChickenCoopTileFactorySO : TileFactorySO
             feedItemId,
             eggItemId,
             maxChickens,
-            productionSeconds);
+            productionSeconds,
+            eggSprite,
+            eggCollectionOffset);
 
         ChickenCoopVisual visual = target.AddComponent<ChickenCoopVisual>();
         visual.Initialize(

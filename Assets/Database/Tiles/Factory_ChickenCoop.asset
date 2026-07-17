@@ -20,6 +20,7 @@ MonoBehaviour:
   fedCoopSprite: {fileID: 8703400546429450311, guid: a29827c7f1247b8479d974a95c7f77f1, type: 3}
   chickenSprite: {fileID: -7941936156974729709, guid: c17df57ab588a2e4eb5d082fcc4cc34a, type: 3}
   eggSprite: {fileID: -5684301516696917941, guid: 415c564c9dec8f14a9394d7acba2aa73, type: 3}
+  eggCollectionOffset: {x: 0, y: 0.35, z: 0}
   chickenOffsets: []
   feedActionIcon: {fileID: -8224697633715539884, guid: 08d0cf37128f84a4f829be7966f2c456, type: 3}
   claimActionIcon: {fileID: -5684301516696917941, guid: 415c564c9dec8f14a9394d7acba2aa73, type: 3}

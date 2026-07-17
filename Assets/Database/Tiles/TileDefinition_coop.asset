@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: TileDefinition_coop
   m_EditorClassIdentifier: Assembly-CSharp::TileDefinitionSO
   tileId: coop
+  displayName: Chicken Coop
   sprite: {fileID: -3623861288908427201, guid: ac1df7ebd850f0245b99f1c25af35866, type: 3}
   category: 3
-  footprint: {x: 3, y: 3}
+  footprint: {x: 4, y: 4}
   factory: {fileID: 11400000, guid: 779ab7b86bd14d7ba79578d61f1ea4a5, type: 2}
+  purchaseCost: 25

@@ -18,6 +18,11 @@ public sealed class TutorialSetup : MonoBehaviour
     private Vector2Int chickenCoopPosition = new Vector2Int(8, 2);
     private string requestBoardTileId = "request_board";
     private Vector2Int requestBoardPosition = new Vector2Int(-5, 4);
+    
+    private string siloId = "silo";
+    private Vector2Int siloPosition = new Vector2Int(5, -5);
+    private string barnId = "barn";
+    private Vector2Int barnPosition = new Vector2Int(10, -9);
 
     [Header("Setup")]
     private bool buildOnStart = true;
@@ -30,16 +35,6 @@ public sealed class TutorialSetup : MonoBehaviour
         UserModel.GetOrCreate();
 
         if (buildOnStart)
-        {
-            SetupTutorialFarm();
-        }
-    }
-
-    private void Update()
-    {
-        if (allowKeyboardTrigger &&
-            Keyboard.current != null &&
-            Keyboard.current.tKey.wasPressedThisFrame)
         {
             SetupTutorialFarm();
         }
@@ -96,6 +91,9 @@ public sealed class TutorialSetup : MonoBehaviour
                 requestBoardPosition);
             featureTilesReady = coopReady && requestBoardReady;
         }
+        
+        FindOrBuildTile(buildService, grid, barnId, barnPosition);
+        FindOrBuildTile(buildService, grid, siloId, siloPosition);
 
         _isSetup = readyPatchCount == columns * rows && featureTilesReady;
 

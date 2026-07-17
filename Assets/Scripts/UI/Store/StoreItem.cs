@@ -15,14 +15,23 @@ public sealed class StoreItem : MonoBehaviour,
     [SerializeField] private TMP_Text cost;
 
     private StoreItemData _item;
+    private StoreScreen _storeScreen;
     private Canvas _dragCanvas;
     private RectTransform _dragPreview;
+    private bool _buildingPlacementHandedOff;
 
     public event Action<StoreItemData> Purchased;
 
     public void Setup(StoreItemData item)
     {
+        Setup(item, GetComponentInParent<StoreScreen>());
+    }
+
+    public void Setup(StoreItemData item, StoreScreen storeScreen)
+    {
         _item = item;
+        _storeScreen = storeScreen;
+        _buildingPlacementHandedOff = false;
         EnsureReferences();
 
         if (_item == null)
@@ -32,7 +41,7 @@ public sealed class StoreItem : MonoBehaviour,
         }
 
         gameObject.name = $"StoreItem_{_item.ItemId}";
-        image?.SetItem(_item.ItemId, _item.Sprite);
+        image.SetItem(_item.ItemId, _item.Sprite);
 
         if (cost != null)
         {
@@ -55,6 +64,11 @@ public sealed class StoreItem : MonoBehaviour,
 
     public void OnDrag(PointerEventData eventData)
     {
+        if (TryHandoffBuildingPlacement(eventData))
+        {
+            return;
+        }
+
         MoveDragPreview(eventData.position);
     }
 
@@ -63,6 +77,11 @@ public sealed class StoreItem : MonoBehaviour,
         DestroyDragPreview();
 
         if (_item == null || eventData.button != PointerEventData.InputButton.Left)
+        {
+            return;
+        }
+
+        if (_buildingPlacementHandedOff || _item.IsBuilding)
         {
             return;
         }
@@ -102,6 +121,30 @@ public sealed class StoreItem : MonoBehaviour,
         {
             Log.info($"[StoreItem] No valid drop target for '{_item.ItemId}'.");
         }
+    }
+
+    private bool TryHandoffBuildingPlacement(PointerEventData eventData)
+    {
+        if (_item == null ||
+            !_item.IsBuilding ||
+            _buildingPlacementHandedOff ||
+            eventData.button != PointerEventData.InputButton.Left ||
+            _storeScreen == null ||
+            _storeScreen.ContainsScreenPoint(eventData.position))
+        {
+            return false;
+        }
+
+        BuildingPlacementController controller = BuildingPlacementController.GetOrCreate();
+        if (controller == null || !controller.BeginPlacement(_item, eventData.position))
+        {
+            return false;
+        }
+
+        _buildingPlacementHandedOff = true;
+        DestroyDragPreview();
+        _storeScreen.CloseForBuildingPlacement();
+        return true;
     }
 
     private void EnsureReferences()

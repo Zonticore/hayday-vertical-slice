@@ -13,7 +13,9 @@ MonoBehaviour:
   m_Name: TileDefinition_request_board
   m_EditorClassIdentifier: Assembly-CSharp::TileDefinitionSO
   tileId: request_board
+  displayName: Request Board
   sprite: {fileID: -5188790356996980686, guid: cdec2cdb03b86fb4e89f93898b5e17cd, type: 3}
   category: 5
-  footprint: {x: 2, y: 1}
+  footprint: {x: 1, y: 2}
   factory: {fileID: 11400000, guid: 6a0a3d867adf4e43b2c4a50e0c1ec003, type: 2}
+  purchaseCost: 15

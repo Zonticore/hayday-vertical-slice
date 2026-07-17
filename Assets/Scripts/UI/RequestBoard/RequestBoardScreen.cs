@@ -56,13 +56,10 @@ public sealed class RequestBoardScreen : UIScreen
         {
             screenId = ScreenId;
         }
-
-        EnsureRuntimeUi();
     }
 
     private void OnEnable()
     {
-        EnsureRuntimeUi();
         Subscribe();
         UpdateUi();
     }
@@ -92,7 +89,6 @@ public sealed class RequestBoardScreen : UIScreen
     public override void show()
     {
         base.show();
-        EnsureRuntimeUi();
         Subscribe();
         UpdateUi();
     }
@@ -127,7 +123,6 @@ public sealed class RequestBoardScreen : UIScreen
 
     private void UpdateUi()
     {
-        EnsureRuntimeUi();
         _user = UserModel.GetOrCreate();
 
         var requested = new List<DisplayEntry>
@@ -221,106 +216,6 @@ public sealed class RequestBoardScreen : UIScreen
 
         var item = createdObject.GetComponent<ItemDisplay>();
         return item != null ? item : createdObject.AddComponent<ItemDisplay>();
-    }
-
-    private void EnsureRuntimeUi()
-    {
-        if (requestedItemsContainer == null)
-        {
-            requestedItemsContainer = FindDescendant("RequestedItemsContainer");
-        }
-
-        if (rewardsContainer == null)
-        {
-            rewardsContainer = FindDescendant("RewardsContainer") ??
-                               CreateContainer("RewardsContainer", new Vector2(0f, -360f));
-        }
-
-        if (submitButton == null)
-        {
-            submitButton = GetComponentInChildren<Button>(true) ?? CreateSubmitButton();
-        }
-    }
-
-    private RectTransform FindDescendant(string objectName)
-    {
-        RectTransform[] descendants = GetComponentsInChildren<RectTransform>(true);
-        for (int i = 0; i < descendants.Length; i++)
-        {
-            if (descendants[i].name == objectName)
-            {
-                return descendants[i];
-            }
-        }
-
-        return null;
-    }
-
-    private RectTransform CreateContainer(string objectName, Vector2 anchoredPosition)
-    {
-        var containerObject = new GameObject(
-            objectName,
-            typeof(RectTransform),
-            typeof(HorizontalLayoutGroup));
-        RectTransform rect = containerObject.GetComponent<RectTransform>();
-        rect.SetParent(transform, false);
-        rect.anchorMin = new Vector2(0.5f, 0.5f);
-        rect.anchorMax = new Vector2(0.5f, 0.5f);
-        rect.anchoredPosition = anchoredPosition;
-        rect.sizeDelta = new Vector2(600f, 150f);
-
-        HorizontalLayoutGroup layout = containerObject.GetComponent<HorizontalLayoutGroup>();
-        layout.spacing = 24f;
-        layout.childAlignment = TextAnchor.MiddleCenter;
-        layout.childControlWidth = false;
-        layout.childControlHeight = false;
-        layout.childForceExpandWidth = false;
-        layout.childForceExpandHeight = false;
-        return rect;
-    }
-
-    private Button CreateSubmitButton()
-    {
-        var buttonObject = new GameObject(
-            "SubmitOrderButton",
-            typeof(RectTransform),
-            typeof(CanvasRenderer),
-            typeof(Image),
-            typeof(Button));
-        RectTransform rect = buttonObject.GetComponent<RectTransform>();
-        rect.SetParent(transform, false);
-        rect.anchorMin = new Vector2(0.5f, 0f);
-        rect.anchorMax = new Vector2(0.5f, 0f);
-        rect.anchoredPosition = new Vector2(0f, 90f);
-        rect.sizeDelta = new Vector2(340f, 90f);
-
-        Image background = buttonObject.GetComponent<Image>();
-        background.color = new Color(0.95f, 0.48f, 0.12f, 1f);
-
-        Button button = buttonObject.GetComponent<Button>();
-        button.targetGraphic = background;
-        button.onClick.AddListener(doOrder);
-
-        var labelObject = new GameObject(
-            "Label",
-            typeof(RectTransform),
-            typeof(CanvasRenderer),
-            typeof(TextMeshProUGUI));
-        RectTransform labelRect = labelObject.GetComponent<RectTransform>();
-        labelRect.SetParent(rect, false);
-        labelRect.anchorMin = Vector2.zero;
-        labelRect.anchorMax = Vector2.one;
-        labelRect.offsetMin = Vector2.zero;
-        labelRect.offsetMax = Vector2.zero;
-
-        TextMeshProUGUI label = labelObject.GetComponent<TextMeshProUGUI>();
-        label.text = "Send Order";
-        label.alignment = TextAlignmentOptions.Center;
-        label.fontStyle = FontStyles.Bold;
-        label.fontSize = 38f;
-        label.color = Color.white;
-        label.raycastTarget = false;
-        return button;
     }
 
     private void UpdateTimerText()

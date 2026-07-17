@@ -112,7 +112,9 @@ public sealed class ChickenCoopVisual : MonoBehaviour
         }
 
         _eggRenderer.gameObject.SetActive(
-            _state.Phase == ChickenCoopPhase.Ready && _eggSprite != null);
+            _state.Phase == ChickenCoopPhase.Ready &&
+            !_state.IsClaimInProgress &&
+            _eggSprite != null);
     }
 
     private int GetChildSortingOrder(Vector3 localPosition, int bias)

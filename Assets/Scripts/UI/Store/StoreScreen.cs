@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -6,8 +7,19 @@ public sealed class StoreScreen : UIScreen
 {
     private const bool verbose = false;
 
+    private enum StoreSection
+    {
+        Animals = 0,
+        Buildings = 1
+    }
+
     [SerializeField] private RectTransform storeItemsContainer;
     [SerializeField] private GameObject storeItemPrefab;
+
+    [Header("Tabs")]
+    [SerializeField] private Button animalsButton;
+    [SerializeField] private Button buildingsButton;
+    [SerializeField] private StoreSection defaultSection = StoreSection.Animals;
 
     [Header("Chicken")]
     [SerializeField] private string chickenItemId = "chicken";
@@ -17,15 +29,92 @@ public sealed class StoreScreen : UIScreen
     [SerializeField, Min(0)] private int chickenCost = 5;
 
     private readonly List<StoreItem> _createdStoreItems = new List<StoreItem>();
+    private readonly List<StoreItemData> _visibleItems = new List<StoreItemData>();
+    private StoreSection _selectedSection;
+    private bool _animalsTabHooked;
+    private bool _buildingsTabHooked;
+
+    private void Awake()
+    {
+        _selectedSection = defaultSection;
+        EnsureTabButtons();
+        HookTabButtons();
+    }
 
     public override void show()
     {
         base.show();
-        UpdateUi();
+        EnsureTabButtons();
+        HookTabButtons();
+        RefreshStoreItems();
     }
 
-    private void UpdateUi()
+    public bool ContainsScreenPoint(Vector2 screenPosition)
     {
+        RectTransform rect = transform as RectTransform;
+        Canvas canvas = GetComponentInParent<Canvas>();
+        Camera eventCamera = canvas == null || canvas.renderMode == RenderMode.ScreenSpaceOverlay
+            ? null
+            : canvas.worldCamera;
+
+        return rect != null && RectTransformUtility.RectangleContainsScreenPoint(
+            rect,
+            screenPosition,
+            eventCamera);
+    }
+
+    public void CloseForBuildingPlacement()
+    {
+        UISystem ui = UISystem.instance;
+        if (ui != null)
+        {
+            ui.hideScreen(this);
+        }
+
+        if (gameObject.activeSelf)
+        {
+            hide();
+        }
+    }
+
+    public void showAnimals()
+    {
+        SetSection(StoreSection.Animals);
+    }
+
+    public void showBuildings()
+    {
+        SetSection(StoreSection.Buildings);
+    }
+
+    public void ShowAnimals()
+    {
+        showAnimals();
+    }
+
+    public void ShowBuildings()
+    {
+        showBuildings();
+    }
+
+    private void SetSection(StoreSection section)
+    {
+        _selectedSection = section;
+        RefreshStoreItems();
+    }
+
+    private void RefreshStoreItems()
+    {
+        _visibleItems.Clear();
+        if (_selectedSection == StoreSection.Animals)
+        {
+            PopulateAnimalItems();
+        }
+        else
+        {
+            PopulateBuildingItems();
+        }
+
         for (int i = 0; i < _createdStoreItems.Count; i++)
         {
             if (_createdStoreItems[i] != null)
@@ -34,16 +123,7 @@ public sealed class StoreScreen : UIScreen
             }
         }
 
-        var itemsToPopulate = new List<StoreItemData>
-        {
-            new StoreItemData(
-                chickenItemId,
-                chickenDisplayName,
-                ResolveChickenSprite(),
-                chickenCost)
-        };
-
-        for (int i = 0; i < itemsToPopulate.Count; i++)
+        for (int i = 0; i < _visibleItems.Count; i++)
         {
             if (_createdStoreItems.Count <= i)
             {
@@ -56,8 +136,62 @@ public sealed class StoreScreen : UIScreen
                 _createdStoreItems.Add(created);
             }
 
-            _createdStoreItems[i].Setup(itemsToPopulate[i]);
+            _createdStoreItems[i].Setup(_visibleItems[i], this);
         }
+
+        if (animalsButton != null)
+        {
+            animalsButton.interactable = _selectedSection != StoreSection.Animals;
+        }
+
+        if (buildingsButton != null)
+        {
+            buildingsButton.interactable = _selectedSection != StoreSection.Buildings;
+        }
+    }
+
+    private void PopulateAnimalItems()
+    {
+        _visibleItems.Add(new StoreItemData(
+            chickenItemId,
+            chickenDisplayName,
+            ResolveChickenSprite(),
+            chickenCost));
+    }
+
+    private void PopulateBuildingItems()
+    {
+        RegistryService registries = RegistryService.instance;
+        TileRegistrySO tileRegistry = registries != null ? registries.TileRegistry : null;
+        if (tileRegistry == null)
+        {
+            if (verbose) Log.warning("[StoreScreen] Tile registry is unavailable.");
+            return;
+        }
+
+        IReadOnlyList<TileDefinitionSO> definitions = tileRegistry.Tiles;
+        for (int i = 0; i < definitions.Count; i++)
+        {
+            TileDefinitionSO definition = definitions[i];
+            if (!IsStoreBuilding(definition))
+            {
+                continue;
+            }
+
+            StoreItemData item = StoreItemData.CreateBuilding(definition);
+            if (item != null)
+            {
+                _visibleItems.Add(item);
+            }
+        }
+    }
+
+    private static bool IsStoreBuilding(TileDefinitionSO definition)
+    {
+        return definition != null &&
+               definition.Factory != null &&
+               definition.Sprite != null &&
+               definition.Category != TileCategory.Terrain;
     }
 
     private StoreItem CreateStoreItem()
@@ -85,7 +219,7 @@ public sealed class StoreScreen : UIScreen
             ((RectTransform)createdObject.transform).sizeDelta = new Vector2(180f, 220f);
         }
 
-        var storeItem = createdObject.GetComponent<StoreItem>();
+        StoreItem storeItem = createdObject.GetComponent<StoreItem>();
         return storeItem != null ? storeItem : createdObject.AddComponent<StoreItem>();
     }
 
@@ -106,6 +240,63 @@ public sealed class StoreScreen : UIScreen
         }
 
         return chickenSprite;
+    }
+
+    private void EnsureTabButtons()
+    {
+        if (animalsButton != null && buildingsButton != null)
+        {
+            return;
+        }
+
+        Button[] buttons = GetComponentsInChildren<Button>(true);
+        for (int i = 0; i < buttons.Length; i++)
+        {
+            Button button = buttons[i];
+            if (button == null)
+            {
+                continue;
+            }
+
+            if (animalsButton == null &&
+                button.name.IndexOf("animal", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                animalsButton = button;
+            }
+            else if (buildingsButton == null &&
+                     button.name.IndexOf("building", StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                buildingsButton = button;
+            }
+        }
+    }
+
+    private void HookTabButtons()
+    {
+        if (!_animalsTabHooked && animalsButton != null)
+        {
+            animalsButton.onClick.AddListener(showAnimals);
+            _animalsTabHooked = true;
+        }
+
+        if (!_buildingsTabHooked && buildingsButton != null)
+        {
+            buildingsButton.onClick.AddListener(showBuildings);
+            _buildingsTabHooked = true;
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (_animalsTabHooked && animalsButton != null)
+        {
+            animalsButton.onClick.RemoveListener(showAnimals);
+        }
+
+        if (_buildingsTabHooked && buildingsButton != null)
+        {
+            buildingsButton.onClick.RemoveListener(showBuildings);
+        }
     }
 
     private void OnValidate()

@@ -118,6 +118,12 @@ public sealed class CameraController : MonoBehaviourSingleton<CameraController>
 
     private bool IsUiOpen()
     {
+        if (BuildingPlacementController.hasInstance &&
+            BuildingPlacementController.instance.IsPlacing)
+        {
+            return true;
+        }
+
         UISystem ui = UISystem.instance;
         if (ui != null) return ui.IsAnyUiOpen;
         ContextMenuController menu = ContextMenuController.instance;
